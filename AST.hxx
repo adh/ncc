@@ -1,3 +1,6 @@
+#include <vector>
+#include <string>
+
 namespace NCC {
   enum ValueType {
     INTEGER,
