@@ -1,0 +1,23 @@
+compilation-unit ::= ( global-variable | function-definition | function-declaration )*
+global-variable ::= type IDENTIFIER ( '=' expression )?
+
+function-definition ::= function-prototype block
+function-declaration ::= function-prototype ';'
+function-prototype ::= type IDENTIFIER '(' ( type IDENTIFIER ( ',' type IDENTIFIER)* )? ')'
+
+block ::= '{' local-variable* statement* '}'
+local-variable ::= type IDENTIFIER ( '=' expression ) ( ',' IDENTIFIER ('=' expression )? )* ';'
+statement ::=   expression ';' 
+              | block
+              | IF '(' expression ')' statement ( ELSE statement )?
+              | FOR '(' expression ';' expression ';' expression ')' statement
+              | WHILE '(' expression ')' statement
+              | DO statement WHILE '(' expression ')' ';'
+
+//TODO: boolean logic, relations, bitwise logic
+expression ::= expression '*' factor | expression '/' factor | factor
+factor ::= factor '+' addend | factor '-' addend | addend | '-' addend
+addend ::= '(' expression ') | IDENTIFIER | FLOAT | INT
+
+
+type ::= 'int' | 'float' | 'ptr'
