@@ -1,4 +1,4 @@
-SRCS = AST.cxx main.cxx
+SRCS = AST.cxx main.cxx token.cxx parse.cxx
 MAKEDEPEND = @echo "  DEP " $<; g++ -M $(CPPFLAGS) -o $(df).d $<
 LDC =        @echo "  LD  " $@; g++ $(LDFLAGS) 
 CCC =        @echo "  C++ " $@; g++ $(LDFLAGS)

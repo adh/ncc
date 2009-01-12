@@ -15,11 +15,19 @@ namespace NCC {
   static const char TOKEN_INT = 10;
   static const char TOKEN_FLOAT = 11;
   static const char TOKEN_PTR = 12;
+  static const char TOKEN_EQUAL = 13;
 
   class Tokenizer {
   protected:
     std::istream& stream;
     char token;
+    std::string text;
+    int int_value;
+    double float_value;
+    
+    // TODO: keep track of file postion
+
+    void parse_number();
   public:
     Tokenizer(std::istream& stream): stream(stream) {};
     char current_token(){
@@ -32,6 +40,5 @@ namespace NCC {
       }
       next_token();
     }
-    
   };
 }
