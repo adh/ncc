@@ -1,5 +1,6 @@
 #include "token.hxx"
-#include <ctype.h>
+#include "exceptions.hxx"
+#include <cctype>
 
 using namespace NCC;
 
@@ -33,19 +34,71 @@ void Tokenizer::parse_number(){
   // float constant contains '.'
 }
 
-void Tokenizer::next_token() {
+int Tokenizer::read_char(bool eof_ok) {
   int ch = stream.get();
-
-  if (ch.eof()){
-    token = TOKEN_EOF;
-    return;
+  if (!stream.good()){
+    if (eof_ok && stream.eof()){
+      return EOF;
+    }
+    throw new InvalidToken();
   }
+  return ch;
+}
 
-  // TODO: skip whitespace
+void Tokenizer::skip_line_comment(){
+  int ch;
+        std::cerr << "skip_line_comment" << std::endl;
+  do {
+    ch = read_char(false);
+  } while (ch != '\n' && ch != '\r');      
+}
+void Tokenizer::skip_comment(){
+  int ch;
+        std::cerr << "skip_comment" << std::endl;
+  for (;;) {
+    ch = read_char(false);
+    if (ch == '*'){
+      ch = read_char(false);
+      if (ch == '/'){
+        break;
+      }
+    }
+  }
+}
+
+
+void Tokenizer::next_token() {
+  int ch;
+
+  do {
+  next:
+    ch = read_char(true);
+    if (ch == EOF){
+      token = TOKEN_EOF;
+      return;
+    }
+    if (ch == '/') {
+      ch = read_char(false);
+      if (ch == '/') {
+        skip_line_comment();
+        goto next;
+      } else if (ch == '*') {
+        skip_comment();
+        goto next;
+      } else {
+        stream.unget();
+        ch = '/';
+        break;
+      }
+    }
+  } while (ch == ' ' | ch == '\n' | ch == '\t' | ch == '\r');
 
   if (isdigit(ch)){
     text = "";
-    while (ch = stream.get && (isdigit(ch) || ch == '.')){
+    while (ch = read_char(true) && (isdigit(ch) || ch == '.')){
+      if (!stream.good()){
+        
+      }
       text += ch;
     }
     parse_number();
@@ -53,15 +106,23 @@ void Tokenizer::next_token() {
   }
   if (isalpha(ch)){
     text = "";
-    while (ch = stream.get && (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '$')){
+    while (ch = read_char(true) && (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '$')){
       text += ch;
     }
     token = keyword_token(text);
     return;
   }
   if (ch == '"'){
-    // string literal
-    return;
+    for (;;){
+      ch = read_char();
+      switch (ch){
+      case '\\':
+      case '"':
+        token = TOKEN_STRING;
+      default:
+      }
+      return;
+    }
   }
   if (ch == '\''){
     // char literal
@@ -80,7 +141,7 @@ void Tokenizer::next_token() {
     token = ch;
     return;
   case '=':
-    ch = stream.get();
+    ch = read_char(true);
     if (ch == '='){
       token = TOKEN_EQUAL;
       return;
@@ -88,5 +149,7 @@ void Tokenizer::next_token() {
     stream.unget();
     token = '=';
     return;
+  default:
+    throw new InvalidToken();
   }
 }

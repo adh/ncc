@@ -28,10 +28,22 @@ namespace NCC {
     // TODO: keep track of file postion
 
     void parse_number();
+    void skip_line_comment();
+    void skip_comment();
+    int read_char(bool eof_ok);
   public:
     Tokenizer(std::istream& stream): stream(stream) {};
     char current_token(){
       return token;
+    }
+    const std::string& get_string_value(){
+      return text;
+    }
+    int get_int_value(){
+      return int_value;
+    }
+    double get_float_value() {
+      return float_value;
     }
     void next_token();
     void eat_token(char token){
