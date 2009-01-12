@@ -1,0 +1,37 @@
+#include <string>
+#include <iostream>
+
+namespace NCC {
+  static const char TOKEN_EOF = 0;
+  static const char TOKEN_INT_VALUE = 1;
+  static const char TOKEN_FLOAT_VALUE = 2;
+  static const char TOKEN_STRING = 3;
+  static const char TOKEN_IDENT = 4;
+  static const char TOKEN_IF = 5;
+  static const char TOKEN_ELSE = 6;
+  static const char TOKEN_WHILE = 7;
+  static const char TOKEN_FOR = 8;
+  static const char TOKEN_DO = 9;
+  static const char TOKEN_INT = 10;
+  static const char TOKEN_FLOAT = 11;
+  static const char TOKEN_PTR = 12;
+
+  class Tokenizer {
+  protected:
+    std::istream& stream;
+    char token;
+  public:
+    Tokenizer(std::istream& stream): stream(stream) {};
+    char current_token(){
+      return token;
+    }
+    void next_token();
+    void eat_token(char token){
+      if (current_token() != token){
+        throw "Unexpected token";
+      }
+      next_token();
+    }
+    
+  };
+}
