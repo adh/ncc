@@ -18,8 +18,13 @@ ValueType Parser::parse_type(){
   }
 }
 
+/*
+ * function-definition ::= function-prototype block
+ * function-declaration ::= function-prototype ';'
+ * function-prototype ::= type IDENTIFIER '(' ( type IDENTIFIER ( ',' type IDENTIFIER)* )? ')'
+ */
 FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::string& name){
-
+  
 }
 
 /*
