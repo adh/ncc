@@ -19,11 +19,6 @@ namespace NCC {
     INV
   };
 
-  class TreeNode {
-  public:
-    virtual ~TreeNode();
-  };
-
   class Expression {
   public:
     virtual ~Expression();
@@ -41,6 +36,13 @@ namespace NCC {
       left(left), right(right), op(op) {};
     virtual ~BinaryOperation();
   };
+
+  class Assignment : public Expression {
+  protected:
+    Expression* value;
+    std::string variable;
+    
+  }
 
   class UnaryOperation : public Expression {
   protected:
@@ -80,7 +82,7 @@ namespace NCC {
     
   };
 
-  class Statement : public TreeNode {
+  class Statement{
     
   };
 
@@ -88,17 +90,27 @@ namespace NCC {
 
   };
   
-  class VariableDeclaration : public TreeNode {
-  protected:
-    ValueType type;
-    
-  };
-
   class Block : public Statement {
   protected:
     std::vector<Statement *> statements;
   public:
   };
+
+  class TopLevelForm {
+  public:
+    virtual ~TopLevelForm();
+  };
+  class GlobalVariable : public TopLevelForm {
+  protected:
+    ValueType type;
+    
+  };
+  class FunctionDeclaration : public TopLevelForm {
+    
+  };
+  class FunctionDefinition : public FunctionDeclaration {
+
+  }; 
 
 }
 
