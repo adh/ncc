@@ -48,6 +48,7 @@ namespace NCC {
     BinaryOperation(Expression* left, Expression* right, BinaryOperator op):
       left(left), right(right), op(op) {};
     virtual ~BinaryOperation();
+    virtual void print(std::ostream& stream, int indent);
   };
 
   class Assignment : public Expression {

@@ -2,6 +2,13 @@
 
 using namespace NCC;
 
+static void print_indent(std::ostream& stream, int indent){
+  while (indent){
+    indent--;
+    stream.put(' ');
+  }
+}
+
 ASTNode::~ASTNode(){}
 Statement::~Statement(){}
 Expression::~Expression(){}
@@ -10,6 +17,29 @@ BinaryOperation::~BinaryOperation(){
   delete left;
   delete right;
 }
+void BinaryOperation::print(std::ostream& stream, int indent){
+  print_indent(indent);
+  stream << "BinaryOperation" << std::endl;
+  left->print(stream, indent+2);
+  print_indent(indent);
+  switch (op){
+  case BINOP_ADD:
+    stream << "+"<< std::endl;
+    break;
+  case BINOP_SUB:
+    stream << "-"<< std::endl;
+    break;
+  case BINOP_MUL:
+    stream << "-"<< std::endl;
+    break;
+  case BINOP_DIV:
+    stream << "/"<< std::endl;
+    break;
+  }
+  right->print(stream, indent+2);
+}
+
+
 Assignment::~Assignment(){
   delete value;
 }
