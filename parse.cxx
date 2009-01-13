@@ -24,6 +24,24 @@ ValueType Parser::parse_type(){
  * function-prototype ::= type IDENTIFIER '(' ( type IDENTIFIER ( ',' type IDENTIFIER)* )? ')'
  */
 FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::string& name){
+  ValueType a_type;
+  std::string a_name;
+  for (;;){
+    tok.next_token();
+    if (tok.current_token() == ')'){
+      break;
+    }
+  }
+  
+  tok.next_token();
+  switch (tok.current_token()){
+  case ';':
+    return NULL; //new FunctionDeclaration(return);
+  case '{':
+    break;
+  default:
+    throw new UnexpectedToken(tok.current_token());
+  }
   
 }
 

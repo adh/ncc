@@ -19,12 +19,25 @@ namespace NCC {
     INV
   };
 
-  class Expression {
+  class ASTNode {
+  public:
+    virtual void print(std::ostream& stream, int indent) = 0;
+    virtual ~ASTNode();
+  };
+
+  class Statement : public ASTNode{
+  public:
+    virtual ~Statement();
+  };
+  typedef std::vector<Statement *> StatementVector;
+
+  class Expression : public Statement{
   public:
     virtual ~Expression();
-    virtual bool is_constant();
-    virtual ValueType type();
+    virtual bool is_constant() = 0;
+    virtual ValueType type() = 0;
   };
+  typedef std::vector<Expression *> ExpressionVector;
     
   class BinaryOperation : public Expression {
   protected:
@@ -41,7 +54,9 @@ namespace NCC {
   protected:
     Expression* value;
     std::string variable;
-    
+  public:
+    Assignment(const std::string& variable, Expression* value) : variable(variable), value(value) {}
+    virtual ~Assignment();
   };
 
   class UnaryOperation : public Expression {
@@ -55,9 +70,13 @@ namespace NCC {
 
   class FunCall : public Expression {
   protected:
-    Expression* function;
-    std::vector<Expression *> arguments;
+    std::string function;
+    ExpressionVector arguments;
   public:
+    FunCall(const std::string& function,     
+            const ExpressionVector& arguments):
+      function(function), arguments(arguments) {}
+
     virtual ~FunCall();
   };
 
@@ -65,34 +84,29 @@ namespace NCC {
   protected:
     int value;
   public:
-
+    IntegerLiteral(int value):value(value){}
+    virtual ~IntegerLiteral();
   };
 
   class DoubleLiteral : public Expression {
   protected:
     double value;
   public:
-    
+    DoubleLiteral(double value): value(value) {}
+    virtual ~DoubleLiteral();
   };
 
   class StringLiteral : public Expression {
   protected:
     std::string value;
   public:
-    
-  };
-
-  class Statement{
-    
-  };
-
-  class ExpressionStatement : public Statement {
-
+    StringLiteral(const std::string& value): value(value) {}
+    virtual ~StringLiteral();
   };
   
   class Block : public Statement {
   protected:
-    std::vector<Statement *> statements;
+    StatementVector statements;
   public:
   };
 
@@ -100,11 +114,12 @@ namespace NCC {
   public:
     virtual ~TopLevelForm();
   };
-  class GlobalVariable : public TopLevelForm {
+  class VariableDeclaration : public TopLevelForm {
   protected:
     ValueType type;
     
   };
+  typedef std::vector<VariableDeclaration*> VariableVector;
   class FunctionDeclaration : public TopLevelForm {
     
   };
