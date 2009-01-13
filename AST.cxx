@@ -26,3 +26,21 @@ IntegerLiteral::~IntegerLiteral(){}
 DoubleLiteral::~DoubleLiteral(){}
 StringLiteral::~StringLiteral(){}
 
+Block::~Block() {
+  for (StatementVector::iterator i = statements.begin();
+       i != statements.end(); i++){
+    delete *i;
+  }
+}
+
+TopLevelForm::~TopLevelForm(){}
+VariableDeclaration::~VariableDeclaration(){}
+FunctionDeclaration::~FunctionDeclaration(){
+  for (VariableVector::iterator i = arguments.begin();
+       i != arguments.end(); i++){
+    delete *i;
+  }
+}
+FunctionDefinition::~FunctionDefinition(){
+  delete contents;
+}

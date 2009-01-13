@@ -108,6 +108,8 @@ namespace NCC {
   protected:
     StatementVector statements;
   public:
+    Block(const StatementVector& statements): statements(statements) {}
+    virtual ~Block();
   };
 
   class TopLevelForm {
@@ -117,15 +119,25 @@ namespace NCC {
   class VariableDeclaration : public TopLevelForm {
   protected:
     ValueType type;
-    
+    std::string name;
+  public:
+    VariableDeclaration(ValueType type, const std::string& name):
+      type(type), name(name) {}
+    virtual ~VariableDeclaration();
   };
   typedef std::vector<VariableDeclaration*> VariableVector;
   class FunctionDeclaration : public TopLevelForm {
-    
+  protected:
+    VariableVector arguments;
+    std::string name;
+  public:
+    virtual ~FunctionDeclaration();
   };
   class FunctionDefinition : public FunctionDeclaration {
-
+  protected:
+    Block* contents;
+  public:
+    virtual ~FunctionDefinition();
   }; 
-
 }
 
