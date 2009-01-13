@@ -42,7 +42,7 @@ namespace NCC {
     Expression* value;
     std::string variable;
     
-  }
+  };
 
   class UnaryOperation : public Expression {
   protected:
