@@ -18,6 +18,10 @@ ValueType Parser::parse_type(){
   }
 }
 
+FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::string& name){
+
+}
+
 /*
  * compilation-unit ::= ( global-variable | function-definition | function-declaration )*
  * global-variable ::= type IDENTIFIER ( '=' expression )?
@@ -43,7 +47,7 @@ TopLevelForm* Parser::read_toplevel(){
     break;
   case '(':
     std::cerr << "Function" << std::endl;
-    break;
+    return parse_function(type, ident);
   case '=':
     std::cerr << "Initialized variable" << std::endl;
     break;
