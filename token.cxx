@@ -55,6 +55,7 @@ static Keyword keywords[] = {
   {"int", TOKEN_INT},
   {"float", TOKEN_FLOAT},
   {"ptr", TOKEN_PTR},
+  {"return", TOKEN_RETURN},
 };
 
 static char keyword_token(const std::string& token){
