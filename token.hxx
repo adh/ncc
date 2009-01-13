@@ -22,6 +22,8 @@ namespace NCC {
   static const char TOKEN_RETURN = 13;
   static const char TOKEN_EQUAL = 14;
 
+  std::string get_token_name(char token);
+
   class Tokenizer {
   protected:
     std::istream& stream;

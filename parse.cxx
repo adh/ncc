@@ -18,6 +18,14 @@ ValueType Parser::parse_type(){
   }
 }
 
+/*
+ * compilation-unit ::= ( global-variable | function-definition | function-declaration )*
+ * global-variable ::= type IDENTIFIER ( '=' expression )?
+ *
+ * function-definition ::= function-prototype block
+ * function-declaration ::= function-prototype ';'
+ * function-prototype ::= type IDENTIFIER '(' ( type IDENTIFIER ( ',' type IDENTIFIER)* )? ')'
+ */
 TopLevelForm* Parser::read_toplevel(){
   ValueType type;
   std::string ident;

@@ -5,6 +5,42 @@
 
 using namespace NCC;
 
+struct TokenName {
+  char token;
+  const char* name;
+};
+
+#define TOKEN_NAME(x) {TOKEN_ ## x, #x}
+static TokenName token_names[] = {
+  TOKEN_NAME(EOF),
+  TOKEN_NAME(INT_VALUE),
+  TOKEN_NAME(FLOAT_VALUE),
+  TOKEN_NAME(STRING),
+  TOKEN_NAME(IDENT),
+  TOKEN_NAME(IF),
+  TOKEN_NAME(ELSE),
+  TOKEN_NAME(WHILE),
+  TOKEN_NAME(FOR),
+  TOKEN_NAME(DO),
+  TOKEN_NAME(INT),
+  TOKEN_NAME(FLOAT),
+  TOKEN_NAME(PTR),
+  TOKEN_NAME(RETURN),
+  TOKEN_NAME(EQUAL),
+};
+
+std::string NCC::get_token_name(char token){
+  int i;
+  for (i = 0; i < sizeof(token_names) / sizeof(TokenName); i++){
+    if (token_names[i].token == token){
+      return token_names[i].name;
+    }
+  }
+  std::string s;
+  s = token;
+  return s;
+}
+
 struct Keyword {
   std::string name;
   char token;
