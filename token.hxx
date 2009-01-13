@@ -30,6 +30,8 @@ namespace NCC {
     void parse_number();
     void skip_line_comment();
     void skip_comment();
+    char read_char_escape();
+    void parse_string();
     int read_char(bool eof_ok);
   public:
     Tokenizer(std::istream& stream): stream(stream) {};
@@ -44,6 +46,9 @@ namespace NCC {
     }
     double get_float_value() {
       return float_value;
+    }
+    const std::string& get_text(){
+      return text;
     }
     void next_token();
     void eat_token(char token){

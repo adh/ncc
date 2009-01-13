@@ -1,6 +1,7 @@
 #include "token.hxx"
 #include "exceptions.hxx"
 #include <cctype>
+#include <cstdlib>
 
 using namespace NCC;
 
@@ -31,7 +32,18 @@ static char keyword_token(const std::string& token){
 }
 
 void Tokenizer::parse_number(){
-  // float constant contains '.'
+  char* str;
+  str = (char*)text.c_str();
+  if (text.find('.') != std::string::npos){
+    token = TOKEN_FLOAT_VALUE;
+    float_value = strtod(str, &str);
+  } else {
+    token = TOKEN_INT_VALUE;
+    int_value = strtol(str, &str, 10);
+  }
+  if (*str != '\0'){
+    //    throw new InvalidToken();
+  }
 }
 
 int Tokenizer::read_char(bool eof_ok) {
@@ -47,14 +59,12 @@ int Tokenizer::read_char(bool eof_ok) {
 
 void Tokenizer::skip_line_comment(){
   int ch;
-        std::cerr << "skip_line_comment" << std::endl;
   do {
     ch = read_char(false);
   } while (ch != '\n' && ch != '\r');      
 }
 void Tokenizer::skip_comment(){
   int ch;
-        std::cerr << "skip_comment" << std::endl;
   for (;;) {
     ch = read_char(false);
     if (ch == '*'){
@@ -66,6 +76,46 @@ void Tokenizer::skip_comment(){
   }
 }
 
+char Tokenizer::read_char_escape(){
+  int ch = read_char(false);
+  switch (ch){
+  case 'n':
+    return '\n';
+  case 'r':
+    return '\r';
+  case 't':
+    return '\t';
+  case 'a':
+    return '\a';
+  case 'b':
+    return '\b';
+  case 'v':
+    return '\v';
+  case 'f':
+    return '\f';
+    // TODO: hex and octal
+  default:
+    return ch;
+  }
+}
+
+void Tokenizer::parse_string(){
+  int ch;
+  text = "";
+  for (;;){
+    token = TOKEN_STRING;
+    ch = read_char(false);
+    switch (ch){
+    case '"':
+      return;
+    case '\\':
+      text += read_char_escape();
+      break;
+    default:
+      text += ch;
+    }
+  }
+}
 
 void Tokenizer::next_token() {
   int ch;
@@ -94,38 +144,38 @@ void Tokenizer::next_token() {
   } while (ch == ' ' | ch == '\n' | ch == '\t' | ch == '\r');
 
   if (isdigit(ch)){
-    text = "";
-    while (ch = read_char(true) && (isdigit(ch) || ch == '.')){
-      if (!stream.good()){
-        
-      }
+    text = ch;
+    while (ch = read_char(true), (isdigit(ch) || ch == '.')){
       text += ch;
     }
+    stream.unget();
     parse_number();
     return;
   }
   if (isalpha(ch)){
-    text = "";
-    while (ch = read_char(true) && (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '$')){
+    text = ch;
+    while (ch = read_char(true), (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '$')){
       text += ch;
     }
+    stream.unget();
     token = keyword_token(text);
     return;
   }
   if (ch == '"'){
-    for (;;){
-      ch = read_char();
-      switch (ch){
-      case '\\':
-      case '"':
-        token = TOKEN_STRING;
-      default:
-      }
-      return;
-    }
+    parse_string();
+    return;
   }
   if (ch == '\''){
-    // char literal
+    ch = read_char(false);
+    if (ch == '\\'){
+      ch = read_char_escape();
+    }
+    int_value = ch;
+    token = TOKEN_INT_VALUE;
+    ch = read_char(false);
+    if (ch != '\''){
+      throw new InvalidToken();
+    }
     return;
   }
 
@@ -138,6 +188,7 @@ void Tokenizer::next_token() {
   case ')':
   case '{':
   case '}':
+  case ';':
     token = ch;
     return;
   case '=':
