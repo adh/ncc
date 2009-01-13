@@ -1,7 +1,8 @@
 SRCS = AST.cxx main.cxx token.cxx parse.cxx
+CXXFLAGS =   -g
 MAKEDEPEND = @echo "  DEP " $<; g++ -M $(CPPFLAGS) -o $(df).d $<
 LDC =        @echo "  LD  " $@; g++ $(LDFLAGS) 
-CCC =        @echo "  C++ " $@; g++ $(LDFLAGS)
+CCC =        @echo "  C++ " $@; g++ $(CXXFLAGS)
 LDADD = 
 
 .PHONY: dep-init all clean

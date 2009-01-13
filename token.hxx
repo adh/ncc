@@ -1,5 +1,9 @@
+#ifndef HXX__ncc__token__
+#define HXX__ncc__token__
+
 #include <string>
 #include <iostream>
+#include "exceptions.hxx"
 
 namespace NCC {
   static const char TOKEN_EOF = 0;
@@ -15,7 +19,8 @@ namespace NCC {
   static const char TOKEN_INT = 10;
   static const char TOKEN_FLOAT = 11;
   static const char TOKEN_PTR = 12;
-  static const char TOKEN_EQUAL = 13;
+  static const char TOKEN_RETURN = 13;
+  static const char TOKEN_EQUAL = 14;
 
   class Tokenizer {
   protected:
@@ -51,11 +56,19 @@ namespace NCC {
       return text;
     }
     void next_token();
-    void eat_token(char token){
-      if (current_token() != token){
-        throw "Unexpected token";
+    void eat_token(char expected){
+      if (current_token() != expected){
+        throw new ExpectedToken(expected, current_token());
       }
       next_token();
     }
+    void next_token_expect(char expected){
+      next_token();
+      if (current_token() != expected){
+        throw new ExpectedToken(expected, current_token());
+      }
+    }
   };
 }
+
+#endif

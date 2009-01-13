@@ -1,3 +1,6 @@
+#ifndef HXX__ncc__exceptions__
+#define HXX__ncc__exceptions__
+
 #include <string>
 #include <exception>
 
@@ -33,3 +36,4 @@ namespace NCC {
   };
 }
 
+#endif
