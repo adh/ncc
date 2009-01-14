@@ -4,6 +4,7 @@ MAKEDEPEND = @echo "  DEP " $<; g++ -M $(CPPFLAGS) -o $(df).d $<
 LDC =        @echo "  LD  " $@; g++ $(LDFLAGS) 
 CCC =        @echo "  C++ " $@; g++ $(CXXFLAGS)
 LDADD = 
+DEPDIR = .deps
 
 .PHONY: dep-init all clean
 
@@ -16,10 +17,10 @@ clean:
 ncc: $(SRCS:.cxx=.o)
 	$(LDC) -o ncc $(SRCS:.cxx=.o) $(LDADD)
 
-df = .deps/$(*F)
+df = $(DEPDIR)/$(*F)
 
 %.o : %.cxx
-	@if [ ! -d ".deps" ]; then mkdir .deps; fi;
+	@if [ ! -d $(DEPDIR) ]; then mkdir $(DEPDIR); fi;
 	$(MAKEDEPEND); \
 	cp $(df).d $(df).P; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
@@ -27,4 +28,4 @@ df = .deps/$(*F)
 	rm -f $(df).d
 	$(CCC) -o $@ -c $<
 
--include $(SRCS:%.cxx=$(DEPDIR)/%.P)
+include $(SRCS:%.cxx=$(DEPDIR)/%.P)
