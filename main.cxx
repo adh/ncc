@@ -8,8 +8,12 @@ int main(){
   NCC::Parser p(t);
   NCC::TopLevelForm *f;
 
-  f = p.read_toplevel();
-  if (f){
-    f->print(std::cout, 0);
+  try {
+    f = p.read_toplevel();
+    if (f){
+      f->print(std::cout, 0);
+    }
+  } catch (std::exception* e){
+    std::cerr << "Error: " << e->what() << std::endl;
   }
 }

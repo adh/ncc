@@ -226,6 +226,7 @@ void Tokenizer::next_token() {
   case '{':
   case '}':
   case ';':
+  case ',':
     token = ch;
     return;
   case '=':

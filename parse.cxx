@@ -27,10 +27,19 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
   VariableVector arguments;
   ValueType a_type;
   std::string a_name;
-  for (;;){
-    tok.next_token();
-    if (tok.current_token() == ')'){
-      break;
+
+  tok.next_token();
+  if (tok.current_token() != ')'){
+    for(;;) {
+      a_type = parse_type();
+      tok.next_token_expect(TOKEN_IDENT);
+      a_name = tok.get_text();
+      arguments.push_back(new VariableDeclaration(a_type, a_name));
+      tok.next_token();
+      if (tok.current_token() == ')'){
+        break;
+      }
+      tok.eat_token(',');
     }
   }
   

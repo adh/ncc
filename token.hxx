@@ -3,6 +3,11 @@
 
 #include <string>
 #include <iostream>
+
+namespace NCC {
+  std::string get_token_name(char token);
+}
+
 #include "exceptions.hxx"
 
 namespace NCC {
@@ -21,8 +26,6 @@ namespace NCC {
   static const char TOKEN_PTR = 12;
   static const char TOKEN_RETURN = 13;
   static const char TOKEN_EQUAL = 14;
-
-  std::string get_token_name(char token);
 
   class Tokenizer {
   protected:
