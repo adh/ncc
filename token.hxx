@@ -34,7 +34,10 @@ namespace NCC {
     std::string text;
     int int_value;
     double float_value;
-    
+ 
+    int line;
+    int column;
+   
     // TODO: keep track of file postion
 
     void parse_number();
@@ -43,8 +46,10 @@ namespace NCC {
     char read_char_escape();
     void parse_string();
     int read_char(bool eof_ok);
+    void unread_char();
   public:
-    Tokenizer(std::istream& stream): stream(stream) {};
+    Tokenizer(std::istream& stream): 
+      stream(stream), line(0), column(0) {};
     char current_token(){
       return token;
     }
@@ -72,6 +77,12 @@ namespace NCC {
       if (current_token() != expected){
         throw new ExpectedToken(expected, current_token());
       }
+    }
+    int get_line(){
+      return line;
+    }
+    int get_column(){
+      return column;
     }
   };
 }

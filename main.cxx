@@ -10,10 +10,12 @@ int main(){
 
   try {
     f = p.read_toplevel();
-    if (f){
-      f->print(std::cout, 0);
-    }
   } catch (std::exception* e){
-    std::cerr << "Error: " << e->what() << std::endl;
+    std::cerr << "Error: " << t.get_line() << ":" << t.get_column() << ": " << e->what() << std::endl;
+    return 1;
+  }
+
+  if (f){
+    f->print(std::cout, 0);
   }
 }

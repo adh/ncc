@@ -48,12 +48,65 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
   case ';':
     return new FunctionDeclaration(return_type, name, arguments);
   case '{':
+    throw "unimplemented";
     break;
   default:
     throw new UnexpectedToken(tok.current_token());
   }
   
 }
+
+VariableDefinition* Parser::parse_initializer(ValueType return_type, const std::string& name){
+  Expression* e;
+  tok.next_token();
+  e = parse_expression();
+  tok.eat_token(';');
+  return new VariableDefinition(return_type, name, e);
+}
+
+/*
+ * expression ::= expression '*' factor | expression '/' factor | factor
+ * factor ::= factor '+' addend | factor '-' addend | addend | '-' addend
+ * addend ::= '(' expression ') | IDENTIFIER | FLOAT | INT
+ */
+
+Expression* Parser::parse_expression(){
+  Expression* e;
+  e = parse_factor();
+  return e;
+}
+Expression* Parser::parse_factor(){
+  Expression* e;
+  e = parse_addend();
+  return e;
+}
+Expression* Parser::parse_addend(){
+  Expression* e;
+
+  switch (tok.current_token()){
+  case '(':
+    tok.next_token();
+    e = parse_expression();
+    tok.eat_token(')');
+    return e;
+  case TOKEN_IDENT:
+    e = new VariableReference(tok.get_text());
+    break;
+  case TOKEN_FLOAT_VALUE:
+    e = new DoubleLiteral(tok.get_float_value());
+    break;
+  case TOKEN_INT_VALUE:
+    e = new IntegerLiteral(tok.get_int_value());
+    break;
+  case TOKEN_STRING:
+    e = new StringLiteral(tok.get_text());
+    break;
+  }
+  tok.next_token();
+  return e;
+}
+
+
 
 /*
  * compilation-unit ::= ( global-variable | function-definition | function-declaration )*
@@ -66,7 +119,6 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
 TopLevelForm* Parser::read_toplevel(){
   ValueType type;
   std::string ident;
-  tok.next_token();
   if (tok.current_token() == TOKEN_EOF){
     return NULL;
   }
@@ -80,7 +132,6 @@ TopLevelForm* Parser::read_toplevel(){
   case '(':
     return parse_function(type, ident);
   case '=':
-    std::cerr << "Initialized variable" << std::endl;
-    break;
+    return parse_initializer(type, ident);
   }
 }

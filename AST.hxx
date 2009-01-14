@@ -36,8 +36,8 @@ namespace NCC {
   class Expression : public Statement{
   public:
     virtual ~Expression();
-    virtual bool is_constant() = 0;
-    virtual ValueType type() = 0;
+    //    virtual bool is_constant() = 0;
+    //    virtual ValueType type() = 0;
   };
   typedef std::vector<Expression *> ExpressionVector;
     
@@ -83,6 +83,15 @@ namespace NCC {
       function(function), arguments(arguments) {}
 
     virtual ~FunCall();
+    virtual void print(std::ostream& stream, int indent);
+  };
+
+  class VariableReference : public Expression {
+  protected:
+    std::string name;
+  public:
+    VariableReference(const std::string& name) : name(name){}
+    virtual ~VariableReference();
     virtual void print(std::ostream& stream, int indent);
   };
 

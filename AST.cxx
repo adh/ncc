@@ -70,6 +70,11 @@ void FunCall::print(std::ostream& stream, int indent){
     (*i)->print(stream, indent+2);
   }
 }
+VariableReference::~VariableReference(){}
+void VariableReference::print(std::ostream& stream, int indent){
+  print_indent(stream, indent);
+  stream << "VariableReference " << name << std::endl;
+}
 IntegerLiteral::~IntegerLiteral(){}
 void IntegerLiteral::print(std::ostream& stream, int indent){
   print_indent(stream, indent);

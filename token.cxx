@@ -85,13 +85,31 @@ void Tokenizer::parse_number(){
 
 int Tokenizer::read_char(bool eof_ok) {
   int ch = stream.get();
+
+  if (ch == '\n') {
+    line++;
+    column = 0;
+  } else {
+    column++;
+  }
+
   if (!stream.good()){
     if (eof_ok && stream.eof()){
       return EOF;
     }
     throw new InvalidToken();
   }
+
   return ch;
+}
+
+void Tokenizer::unread_char(){
+  if (column == 0){
+    line--;
+  } else {
+    column--;
+  }
+  stream.unget();
 }
 
 void Tokenizer::skip_line_comment(){
@@ -173,7 +191,7 @@ void Tokenizer::next_token() {
         skip_comment();
         goto next;
       } else {
-        stream.unget();
+        unread_char();
         ch = '/';
         break;
       }
@@ -185,7 +203,7 @@ void Tokenizer::next_token() {
     while (ch = read_char(true), (isdigit(ch) || ch == '.')){
       text += ch;
     }
-    stream.unget();
+    unread_char();
     parse_number();
     return;
   }
@@ -194,7 +212,7 @@ void Tokenizer::next_token() {
     while (ch = read_char(true), (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '$')){
       text += ch;
     }
-    stream.unget();
+    unread_char();
     token = keyword_token(text);
     return;
   }
@@ -235,7 +253,7 @@ void Tokenizer::next_token() {
       token = TOKEN_EQUAL;
       return;
     }
-    stream.unget();
+    unread_char();
     token = '=';
     return;
   default:
