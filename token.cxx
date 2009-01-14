@@ -196,7 +196,7 @@ void Tokenizer::next_token() {
         break;
       }
     }
-  } while (ch == ' ' | ch == '\n' | ch == '\t' | ch == '\r');
+  } while (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r');
 
   if (isdigit(ch)){
     text = ch;
@@ -245,6 +245,10 @@ void Tokenizer::next_token() {
   case '}':
   case ';':
   case ',':
+  case '?':
+  case ':':
+  case '~':
+  case '^':
     token = ch;
     return;
   case '=':
@@ -256,6 +260,34 @@ void Tokenizer::next_token() {
     unread_char();
     token = '=';
     return;
+  case '!':
+    ch = read_char(true);
+    if (ch == '='){
+      token = TOKEN_NOT_EQUAL;
+      return;
+    }
+    unread_char();
+    token = '!';
+    return;
+  case '&':
+    ch = read_char(true);
+    if (ch == '&'){
+      token = TOKEN_SC_AND;
+      return;
+    }
+    unread_char();
+    token = '&';
+    return;
+  case '|':
+    ch = read_char(true);
+    if (ch == '|'){
+      token = TOKEN_SC_OR;
+      return;
+    }
+    unread_char();
+    token = '|';
+    return;
+    
   default:
     throw new InvalidToken();
   }

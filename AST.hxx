@@ -14,11 +14,32 @@ namespace NCC {
     BINOP_ADD,
     BINOP_MUL,
     BINOP_SUB,
-    BINOP_DIV    
+    BINOP_DIV,
+    BINOP_OR,
+    BINOP_AND,
+    BINOP_XOR,
+    BINOP_EQ,
+    BINOP_NEQ,
+    BINOP_GT,
+    BINOP_LT,
+    BINOP_GTE,
+    BINOP_LTE,
+    BINOP_COMMA
   };
 
   enum UnaryOperator {
-    UNOP_INV
+    UNOP_INV,
+    UNOP_NOT,
+    UNOP_LOG_NOT
+  };
+
+  enum ShortCircuitOperator {
+    SCOP_OR,
+    SCOP_AND
+  };
+
+  enum AssignmentOperator {
+    ASOP_ASSIGN
   };
 
   class ASTNode {
@@ -53,12 +74,40 @@ namespace NCC {
     virtual void print(std::ostream& stream, int indent);
   };
 
+  class ShortCircuitOperation : public Expression {
+  protected:
+    Expression* left;
+    ShortCircuitOperator op;
+    Expression* right;
+  public:
+    ShortCircuitOperation(Expression* left, Expression* right, 
+                          ShortCircuitOperator op):
+      left(left), right(right), op(op) {};
+    virtual ~ShortCircuitOperation();
+    virtual void print(std::ostream& stream, int indent);
+  };
+
+  class ConditionalExpression : public Expression {
+  protected:
+    Expression* cond;
+    Expression* cons;
+    Expression* alt;
+  public:
+    ConditionalExpression(Expression* cond, Expression* cons, Expression* alt):
+      cond(cond), cons(cons), alt(alt) {}
+    virtual ~ConditionalExpression();
+    virtual void print(std::ostream& stream, int indent);
+  };
+
   class Assignment : public Expression {
   protected:
     Expression* value;
+    AssignmentOperator op;
     std::string variable;
   public:
-    Assignment(const std::string& variable, Expression* value) : variable(variable), value(value) {}
+    Assignment(const std::string& variable, 
+               AssignmentOperator op, 
+               Expression* value) : variable(variable), op(op), value(value) {}
     virtual ~Assignment();
     virtual void print(std::ostream& stream, int indent);
   };
@@ -93,6 +142,9 @@ namespace NCC {
     VariableReference(const std::string& name) : name(name){}
     virtual ~VariableReference();
     virtual void print(std::ostream& stream, int indent);
+    const std::string& get_name(){
+      return name;
+    }
   };
 
   class IntegerLiteral : public Expression {

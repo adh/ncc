@@ -10,6 +10,25 @@ static void print_indent(std::ostream& stream, int indent){
   }
 }
 
+#define NAME(x) #x
+static const char* binop_names[] = {
+  NAME(BINOP_ADD),
+  NAME(BINOP_MUL),
+  NAME(BINOP_SUB),
+  NAME(BINOP_DIV),
+  NAME(BINOP_OR),
+  NAME(BINOP_AND),
+  NAME(BINOP_XOR),
+  NAME(BINOP_EQ),
+  NAME(BINOP_NEQ),
+  NAME(BINOP_GT),
+  NAME(BINOP_LT),
+  NAME(BINOP_GTE),
+  NAME(BINOP_LTE),
+  NAME(BINOP_COMMA)
+};
+
+
 ASTNode::~ASTNode(){}
 Statement::~Statement(){}
 Expression::~Expression(){}
@@ -20,23 +39,40 @@ BinaryOperation::~BinaryOperation(){
 }
 void BinaryOperation::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
-  stream << "BinaryOperation ";
+  stream << "BinaryOperation " << binop_names[op] << std::endl;
+  left->print(stream, indent+2);
+  right->print(stream, indent+2);
+}
+ShortCircuitOperation::~ShortCircuitOperation(){
+  delete left;
+  delete right;
+}
+void ShortCircuitOperation::print(std::ostream& stream, int indent){
+  print_indent(stream, indent);
+  stream << "ShortCircuitOperation ";
   switch (op){
-  case BINOP_ADD:
-    stream << "+"<< std::endl;
+  case SCOP_AND:
+    stream << "&&"<< std::endl;
     break;
-  case BINOP_SUB:
-    stream << "-"<< std::endl;
-    break;
-  case BINOP_MUL:
-    stream << "-"<< std::endl;
-    break;
-  case BINOP_DIV:
-    stream << "/"<< std::endl;
+  case SCOP_OR:
+    stream << "||"<< std::endl;
     break;
   }
-  right->print(stream, indent+2);
   left->print(stream, indent+2);
+  right->print(stream, indent+2);
+}
+
+ConditionalExpression::~ConditionalExpression(){
+  delete cond;
+  delete cons;
+  delete alt;
+}
+void ConditionalExpression::print(std::ostream& stream, int indent){
+  print_indent(stream, indent);
+  stream << "ConditionalExpression";
+  cond->print(stream, indent+2);
+  cons->print(stream, indent+2);
+  alt->print(stream, indent+2);
 }
 
 

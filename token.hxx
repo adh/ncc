@@ -26,6 +26,11 @@ namespace NCC {
   static const char TOKEN_PTR = 12;
   static const char TOKEN_RETURN = 13;
   static const char TOKEN_EQUAL = 14;
+  static const char TOKEN_NOT_EQUAL = 15;
+  static const char TOKEN_GT_EQUAL = 16;
+  static const char TOKEN_LT_EQUAL = 17;
+  static const char TOKEN_SC_AND = 18;
+  static const char TOKEN_SC_OR = 19;
 
   class Tokenizer {
   protected:
