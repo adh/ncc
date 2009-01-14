@@ -149,9 +149,12 @@ namespace NCC {
   typedef std::vector<VariableDeclaration*> VariableVector;
   class FunctionDeclaration : public TopLevelForm {
   protected:
-    VariableVector arguments;
+    ValueType type;
     std::string name;
+    VariableVector arguments;
   public:
+    FunctionDeclaration(ValueType type, std::string name, VariableVector arguments):
+      type(type), name(name), arguments(arguments) {};
     virtual ~FunctionDeclaration();
     virtual void print(std::ostream& stream, int indent);
   };

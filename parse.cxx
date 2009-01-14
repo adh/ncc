@@ -24,6 +24,7 @@ ValueType Parser::parse_type(){
  * function-prototype ::= type IDENTIFIER '(' ( type IDENTIFIER ( ',' type IDENTIFIER)* )? ')'
  */
 FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::string& name){
+  VariableVector arguments;
   ValueType a_type;
   std::string a_name;
   for (;;){
@@ -36,7 +37,7 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
   tok.next_token();
   switch (tok.current_token()){
   case ';':
-    return NULL; //new FunctionDeclaration(return);
+    return new FunctionDeclaration(return_type, name, arguments);
   case '{':
     break;
   default:
@@ -68,7 +69,6 @@ TopLevelForm* Parser::read_toplevel(){
   case ';':
     return new VariableDefinition(type, ident, NULL);
   case '(':
-    std::cerr << "Function" << std::endl;
     return parse_function(type, ident);
   case '=':
     std::cerr << "Initialized variable" << std::endl;
