@@ -8,11 +8,11 @@ using namespace NCC;
 ValueType Parser::parse_type(){
   switch(tok.current_token()){
   case TOKEN_INT:
-    return INTEGER;
+    return TYPE_INTEGER;
   case TOKEN_FLOAT:
-    return DOUBLE;
+    return TYPE_DOUBLE;
   case TOKEN_PTR:
-    return POINTER;
+    return TYPE_POINTER;
   default:
     throw new UnexpectedToken(tok.current_token());
   }
@@ -66,8 +66,7 @@ TopLevelForm* Parser::read_toplevel(){
   tok.next_token();
   switch (tok.current_token()){
   case ';':
-    std::cerr << "Uninitialized variable " << ident << std::endl;
-    break;
+    return new VariableDefinition(type, ident, NULL);
   case '(':
     std::cerr << "Function" << std::endl;
     return parse_function(type, ident);

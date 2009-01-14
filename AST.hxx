@@ -1,22 +1,24 @@
+#ifndef HXX__ncc__AST__
+#define HXX__ncc__AST__
 #include <vector>
 #include <string>
 
 namespace NCC {
   enum ValueType {
-    INTEGER,
-    DOUBLE,
-    POINTER
+    TYPE_INTEGER,
+    TYPE_DOUBLE,
+    TYPE_POINTER
   };
 
   enum BinaryOperator {
-    ADD,
-    MUL,
-    SUB,
-    DIV    
+    BINOP_ADD,
+    BINOP_MUL,
+    BINOP_SUB,
+    BINOP_DIV    
   };
 
   enum UnaryOperator {
-    INV
+    UNOP_INV
   };
 
   class ASTNode {
@@ -58,6 +60,7 @@ namespace NCC {
   public:
     Assignment(const std::string& variable, Expression* value) : variable(variable), value(value) {}
     virtual ~Assignment();
+    virtual void print(std::ostream& stream, int indent);
   };
 
   class UnaryOperation : public Expression {
@@ -67,6 +70,7 @@ namespace NCC {
   public:
     UnaryOperation(Expression* e, UnaryOperator op): expr(e), op(op) {};
     virtual ~UnaryOperation();
+    virtual void print(std::ostream& stream, int indent);
   };
 
   class FunCall : public Expression {
@@ -79,6 +83,7 @@ namespace NCC {
       function(function), arguments(arguments) {}
 
     virtual ~FunCall();
+    virtual void print(std::ostream& stream, int indent);
   };
 
   class IntegerLiteral : public Expression {
@@ -87,6 +92,7 @@ namespace NCC {
   public:
     IntegerLiteral(int value):value(value){}
     virtual ~IntegerLiteral();
+    virtual void print(std::ostream& stream, int indent);
   };
 
   class DoubleLiteral : public Expression {
@@ -95,6 +101,7 @@ namespace NCC {
   public:
     DoubleLiteral(double value): value(value) {}
     virtual ~DoubleLiteral();
+    virtual void print(std::ostream& stream, int indent);
   };
 
   class StringLiteral : public Expression {
@@ -103,6 +110,7 @@ namespace NCC {
   public:
     StringLiteral(const std::string& value): value(value) {}
     virtual ~StringLiteral();
+    virtual void print(std::ostream& stream, int indent);
   };
   
   class Block : public Statement {
@@ -111,9 +119,10 @@ namespace NCC {
   public:
     Block(const StatementVector& statements): statements(statements) {}
     virtual ~Block();
+    virtual void print(std::ostream& stream, int indent);
   };
 
-  class TopLevelForm {
+  class TopLevelForm : public ASTNode{
   public:
     virtual ~TopLevelForm();
   };
@@ -125,6 +134,17 @@ namespace NCC {
     VariableDeclaration(ValueType type, const std::string& name):
       type(type), name(name) {}
     virtual ~VariableDeclaration();
+    virtual void print(std::ostream& stream, int indent);
+  };
+  class VariableDefinition : public VariableDeclaration {
+  protected:
+    Expression* value;
+  public:
+    VariableDefinition(ValueType type, const std::string& name, 
+                       Expression* value): 
+      VariableDeclaration(type, name), value(value) {}
+    virtual ~VariableDefinition();    
+    virtual void print(std::ostream& stream, int indent);
   };
   typedef std::vector<VariableDeclaration*> VariableVector;
   class FunctionDeclaration : public TopLevelForm {
@@ -133,12 +153,15 @@ namespace NCC {
     std::string name;
   public:
     virtual ~FunctionDeclaration();
+    virtual void print(std::ostream& stream, int indent);
   };
   class FunctionDefinition : public FunctionDeclaration {
   protected:
     Block* contents;
   public:
     virtual ~FunctionDefinition();
+    virtual void print(std::ostream& stream, int indent);
   }; 
 }
 
+#endif
