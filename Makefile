@@ -28,4 +28,4 @@ df = $(DEPDIR)/$(*F)
 	rm -f $(df).d
 	$(CCC) -o $@ -c $<
 
-include $(SRCS:%.cxx=$(DEPDIR)/%.P)
+-include $(SRCS:%.cxx=$(DEPDIR)/%.P)
