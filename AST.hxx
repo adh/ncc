@@ -1,5 +1,11 @@
 #ifndef HXX__ncc__AST__
 #define HXX__ncc__AST__
+
+#include "llvm/DerivedTypes.h"
+#include "llvm/Module.h"
+#include "llvm/Analysis/Verifier.h"
+#include "llvm/Support/LLVMBuilder.h"
+
 #include <vector>
 #include <string>
 

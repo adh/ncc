@@ -1,10 +1,12 @@
 SRCS = AST.cxx main.cxx token.cxx parse.cxx
-CXXFLAGS =   -g -Wall
+CPPFLAGS   = `llvm-config --cppflags`
+CXXFLAGS   = -g -Wall $(CPPFLAGS) `llvm-config --cxxflags core`
+LDFLAGS    = `llvm-config --ldflags core` 
+LDADD      = `llvm-config --libs core`
 MAKEDEPEND = @echo "  DEP " $<; g++ -M $(CPPFLAGS) -o $(df).d $<
-LDC =        @echo "  LD  " $@; g++ $(LDFLAGS) 
-CCC =        @echo "  C++ " $@; g++ $(CXXFLAGS)
-LDADD = 
-DEPDIR = .deps
+LDC        = @echo "  LD  " $@; g++ $(LDFLAGS) 
+CCC        = @echo "  C++ " $@; g++ $(CXXFLAGS)
+DEPDIR     = .deps
 
 .PHONY: dep-init all clean
 

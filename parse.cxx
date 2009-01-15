@@ -103,6 +103,8 @@ Expression* Parser::parse_value(){
   case TOKEN_STRING:
     e = new StringLiteral(tok.get_text());
     break;
+  default:
+    throw new UnexpectedToken(tok.current_token());
   }
   tok.next_token();
   return e;

@@ -207,7 +207,8 @@ void GlobalVariable::print(std::ostream& stream, int indent){
   }
 }
 void Argument::print(std::ostream& stream, int indent){
-  stream << "FunctionDeclaration " << name << std::endl; 
+  print_indent(stream, indent);
+  stream << "Argument" << name << std::endl; 
 }
 
 FunctionDeclaration::~FunctionDeclaration(){
