@@ -158,37 +158,58 @@ void ConditionalStatement::print(std::ostream& stream, int indent){
     alt->print(stream, indent+2);
   }
 }
+WhileStatement::~WhileStatement(){
+  delete cond;
+  delete body;
+}
+void WhileStatement::print(std::ostream& stream, int indent){
+  print_indent(stream, indent);
+  stream << "WhileStatement" << std::endl;
+  cond->print(stream, indent+2);
+  body->print(stream, indent+2);
+}
 
 
 TopLevelForm::~TopLevelForm(){}
 
-VariableDeclaration::~VariableDeclaration(){}
-void VariableDeclaration::print(std::ostream& stream, int indent){
-  print_indent(stream, indent);
-  stream << "VariableDeclaration " << name << std::endl; 
-}
 
-VariableDefinition::~VariableDefinition(){}
-void VariableDefinition::print(std::ostream& stream, int indent){
+LocalVariable::~LocalVariable(){
+  if (value){
+    delete value;
+  }
+}
+void LocalVariable::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
-  stream << "VariableDefinition " << name << std::endl; 
+  stream << "LocalVariable " << name << std::endl; 
   if (value){
     value->print(stream, indent+2);
-  } else {
-    print_indent(stream, indent+2);
-    stream << "Void" << std::endl;     
   }
+}
+GlobalVariable::~GlobalVariable(){
+  if (value){
+    delete value;
+  }
+}
+void GlobalVariable::print(std::ostream& stream, int indent){
+  print_indent(stream, indent);
+  stream << "GlobalVariable " << name << std::endl; 
+  if (value){
+    value->print(stream, indent+2);
+  }
+}
+void Argument::print(std::ostream& stream, int indent){
+  stream << "FunctionDeclaration " << name << std::endl; 
 }
 
 FunctionDeclaration::~FunctionDeclaration(){
-  for (VariableVector::iterator i = arguments.begin();
+  for (ArgumentVector::iterator i = arguments.begin();
        i != arguments.end(); i++){
     delete *i;
   }
 }
 void FunctionDeclaration::print(std::ostream& stream, int indent){
   stream << "FunctionDeclaration " << name << std::endl; 
-  for (VariableVector::iterator i = arguments.begin();
+  for (ArgumentVector::iterator i = arguments.begin();
        i != arguments.end(); i++){
     (*i)->print(stream, indent+2);
   }
@@ -199,7 +220,7 @@ FunctionDefinition::~FunctionDefinition(){
 void FunctionDefinition::print(std::ostream& stream, int indent){
   stream << "FunctionDefinition " << name << std::endl; 
   stream << "  Arguments" << std::endl; 
-  for (VariableVector::iterator i = arguments.begin();
+  for (ArgumentVector::iterator i = arguments.begin();
        i != arguments.end(); i++){
     (*i)->print(stream, indent+4);
   }
