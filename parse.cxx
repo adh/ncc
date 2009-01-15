@@ -18,7 +18,7 @@ ValueType Parser::parse_type(){
 }
 
 FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::string& name){
-  VariableVector arguments;
+  ArgumentVector arguments;
   ValueType a_type;
   Block* b;
   std::string a_name;
@@ -29,7 +29,7 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
       a_type = parse_type();
       tok.next_token_expect(TOKEN_IDENT);
       a_name = tok.get_text();
-      arguments.push_back(new VariableDeclaration(a_type, a_name));
+      arguments.push_back(new Argument(a_type, a_name));
       tok.next_token();
       if (tok.current_token() == ')'){
         break;
@@ -51,12 +51,12 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
   
 }
 
-VariableDefinition* Parser::parse_initializer(ValueType return_type, const std::string& name){
+Expression* Parser::parse_initializer(){
   Expression* e;
-  tok.next_token();
+  tok.eat_token('=');
   e = parse_ternary();
   tok.eat_token(';');
-  return new VariableDefinition(return_type, name, e);
+  return e;
 }
 
 Expression* Parser::parse_funcall(const std::string& ident){
@@ -293,10 +293,60 @@ Block* Parser::parse_block(){
   tok.eat_token('}');
   return new Block(v); 
 }
+
+ConditionalStatement* Parser::parse_condition(){
+  Expression* cond;
+  Statement* cons;
+  Statement* alt = NULL;
+
+  tok.eat_token(TOKEN_IF);
+  tok.eat_token('(');
+  cond = parse_comma();
+  tok.eat_token(')');
+  cons = parse_statement();
+  if (tok.current_token() == TOKEN_ELSE){
+    tok.next_token();
+    alt = parse_statement();
+  }
+  return new ConditionalStatement(cond, cons, alt);
+}
+
+WhileStatement* Parser::parse_while(){
+  Expression* cond;
+  Statement* body;
+
+  tok.eat_token(TOKEN_WHILE);
+  tok.eat_token('(');
+  cond = parse_comma();
+  tok.eat_token(')');
+  body = parse_statement();
+  return new WhileStatement(cond, body);
+}
+
+LocalVariable* Parser::parse_local_variable(){
+  ValueType type;
+  std::string ident;
+  Expression* init = NULL;
+  type = parse_type();
+  tok.next_token_expect(TOKEN_IDENT);
+  ident = tok.get_text();
+  tok.next_token();
+  if (tok.current_token() == '='){
+    tok.eat_token('=');
+    init = parse_ternary();
+  }
+  return new LocalVariable(type, ident, init);
+}
+
 Statement* Parser::parse_statement(){
   Statement* s;
 
   switch (tok.current_token()){
+  case TOKEN_INT:
+  case TOKEN_FLOAT:
+  case TOKEN_PTR:
+    return parse_local_variable();
+
   case '{':
     return parse_block();
   case TOKEN_RETURN:
@@ -305,7 +355,9 @@ Statement* Parser::parse_statement(){
     tok.eat_token(';');
     return s;
   case TOKEN_IF:
+    return parse_condition();
   case TOKEN_WHILE:
+    return parse_while();
   default:
     s = parse_comma();
     tok.eat_token(';');
@@ -325,11 +377,11 @@ TopLevelForm* Parser::read_toplevel(){
   tok.next_token();
   switch (tok.current_token()){
   case ';':
-    return new VariableDefinition(type, ident, NULL);
+    return new GlobalVariable(type, ident, NULL);
   case '(':
     return parse_function(type, ident);
   case '=':
-    return parse_initializer(type, ident);
+    return new GlobalVariable(type, ident, parse_initializer());
   default:
     throw new UnexpectedToken(tok.current_token());
   }

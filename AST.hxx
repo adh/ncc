@@ -203,39 +203,66 @@ namespace NCC {
     virtual ~ReturnStatement();
     virtual void print(std::ostream& stream, int indent);
   };
+  class WhileStatement : public Statement {
+  protected:
+    Expression* cond;
+    Statement* body;
+  public:
+    WhileStatement(Expression* cond, Statement* body):
+      cond(cond), body(body) {}
+    virtual ~WhileStatement();
+    virtual void print(std::ostream& stream, int indent);
+  };
 
   class TopLevelForm : public ASTNode{
   public:
     virtual ~TopLevelForm();
   };
-  class VariableDeclaration : public TopLevelForm {
+  class LocalVariable : public Statement {
+  protected:
+    ValueType type;
+    std::string name;
+    Expression* value;
+  public:
+    LocalVariable(ValueType type, const std::string& name, 
+                  Expression* value): 
+      type(type), name(name), value(value) {}
+    virtual ~LocalVariable();    
+    virtual void print(std::ostream& stream, int indent);
+  };
+
+  class GlobalVariable : public TopLevelForm {
+  protected:
+    ValueType type;
+    std::string name;
+    Expression* value;
+  public:
+    GlobalVariable(ValueType type, const std::string& name, 
+                       Expression* value): 
+      type(type), name(name), value(value) {}
+    virtual ~GlobalVariable();    
+    virtual void print(std::ostream& stream, int indent);
+  };
+
+  class Argument : public ASTNode {
   protected:
     ValueType type;
     std::string name;
   public:
-    VariableDeclaration(ValueType type, const std::string& name):
+    Argument(ValueType type, const std::string& name): 
       type(type), name(name) {}
-    virtual ~VariableDeclaration();
+    //virtual ~Argument();    
     virtual void print(std::ostream& stream, int indent);
   };
-  class VariableDefinition : public VariableDeclaration {
-  protected:
-    Expression* value;
-  public:
-    VariableDefinition(ValueType type, const std::string& name, 
-                       Expression* value): 
-      VariableDeclaration(type, name), value(value) {}
-    virtual ~VariableDefinition();    
-    virtual void print(std::ostream& stream, int indent);
-  };
-  typedef std::vector<VariableDeclaration*> VariableVector;
+  typedef std::vector<Argument*> ArgumentVector;
+
   class FunctionDeclaration : public TopLevelForm {
   protected:
     ValueType type;
     std::string name;
-    VariableVector arguments;
+    ArgumentVector arguments;
   public:
-    FunctionDeclaration(ValueType type, std::string name, VariableVector arguments):
+    FunctionDeclaration(ValueType type, std::string name, ArgumentVector arguments):
       type(type), name(name), arguments(arguments) {};
     virtual ~FunctionDeclaration();
     virtual void print(std::ostream& stream, int indent);
@@ -244,7 +271,7 @@ namespace NCC {
   protected:
     Block* contents;
   public:
-    FunctionDefinition(ValueType type, std::string name, VariableVector arguments,
+    FunctionDefinition(ValueType type, std::string name, ArgumentVector arguments,
                        Block* contents): 
       FunctionDeclaration(type, name, arguments), contents(contents) {};
     virtual ~FunctionDefinition();

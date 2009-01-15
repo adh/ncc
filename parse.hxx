@@ -7,7 +7,7 @@ namespace NCC{
     Tokenizer& tok;
     ValueType parse_type();
     FunctionDeclaration* parse_function(ValueType return_type, const std::string& name);
-    VariableDefinition* parse_initializer(ValueType return_type, const std::string& name);
+    Expression* parse_initializer();
     Expression* parse_funcall(const std::string& ident);
     Expression* parse_value();
     Expression* parse_unary();
@@ -20,7 +20,11 @@ namespace NCC{
     Expression* parse_assign();
     Expression* parse_comma();
     Block* parse_block();
+    ConditionalStatement* parse_condition();
+    WhileStatement* parse_while();
     Statement* parse_statement();
+    LocalVariable* parse_local_variable();
+
   public:
     Parser(Tokenizer& tok) : tok(tok) {
       tok.next_token();
