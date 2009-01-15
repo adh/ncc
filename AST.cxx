@@ -158,6 +158,14 @@ void ConditionalStatement::print(std::ostream& stream, int indent){
     alt->print(stream, indent+2);
   }
 }
+ReturnStatement::~ReturnStatement(){
+  delete expr;
+}
+void ReturnStatement::print(std::ostream& stream, int indent){
+  print_indent(stream, indent);
+  stream << "ReturnStatement" << std::endl;
+  expr->print(stream, indent+2);
+}
 
 
 TopLevelForm::~TopLevelForm(){}

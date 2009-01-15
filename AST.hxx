@@ -195,6 +195,15 @@ namespace NCC {
     virtual void print(std::ostream& stream, int indent);
   };
 
+  class ReturnStatement : public Statement {
+  protected:
+    Expression* expr;
+  public:
+    ReturnStatement(Expression* expr): expr(expr) {};
+    virtual ~ReturnStatement();
+    virtual void print(std::ostream& stream, int indent);
+  };
+
   class TopLevelForm : public ASTNode{
   public:
     virtual ~TopLevelForm();

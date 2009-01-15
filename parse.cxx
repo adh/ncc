@@ -299,6 +299,11 @@ Statement* Parser::parse_statement(){
   switch (tok.current_token()){
   case '{':
     return parse_block();
+  case TOKEN_RETURN:
+    tok.next_token();
+    s = new ReturnStatement(parse_comma());
+    tok.eat_token(';');
+    return s;
   case TOKEN_IF:
   case TOKEN_WHILE:
   default:
