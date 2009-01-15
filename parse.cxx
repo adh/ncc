@@ -290,12 +290,17 @@ Block* Parser::parse_block(){
     s = parse_statement();
     v.push_back(s);
   }
+  tok.eat_token('}');
   return new Block(v); 
 }
 Statement* Parser::parse_statement(){
   Statement* s;
 
   switch (tok.current_token()){
+  case '{':
+    return parse_block();
+  case TOKEN_IF:
+  case TOKEN_WHILE:
   default:
     s = parse_comma();
     tok.eat_token(';');
