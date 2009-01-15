@@ -8,6 +8,7 @@ namespace NCC{
     ValueType parse_type();
     FunctionDeclaration* parse_function(ValueType return_type, const std::string& name);
     VariableDefinition* parse_initializer(ValueType return_type, const std::string& name);
+    Expression* parse_funcall(const std::string& ident);
     Expression* parse_value();
     Expression* parse_unary();
     Expression* parse_multiplicative();
@@ -18,7 +19,8 @@ namespace NCC{
     Expression* parse_ternary();
     Expression* parse_assign();
     Expression* parse_comma();
-
+    Block* parse_block();
+    Statement* parse_statement();
   public:
     Parser(Tokenizer& tok) : tok(tok) {
       tok.next_token();

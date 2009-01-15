@@ -20,6 +20,7 @@ ValueType Parser::parse_type(){
 FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::string& name){
   VariableVector arguments;
   ValueType a_type;
+  Block* b;
   std::string a_name;
 
   tok.next_token();
@@ -42,8 +43,8 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
   case ';':
     return new FunctionDeclaration(return_type, name, arguments);
   case '{':
-    throw "unimplemented";
-    break;
+    b = parse_block();
+    return new FunctionDefinition(return_type, name, arguments, b);
   default:
     throw new UnexpectedToken(tok.current_token());
   }
@@ -53,13 +54,32 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
 VariableDefinition* Parser::parse_initializer(ValueType return_type, const std::string& name){
   Expression* e;
   tok.next_token();
-  e = parse_logic();
+  e = parse_ternary();
   tok.eat_token(';');
   return new VariableDefinition(return_type, name, e);
 }
 
+Expression* Parser::parse_funcall(const std::string& ident){
+  ExpressionVector arguments;
+
+  tok.eat_token('(');
+  if (tok.current_token() != ')'){
+    for(;;) {
+      arguments.push_back(parse_assign());
+      if (tok.current_token() == ')'){
+        break;
+      }
+      tok.eat_token(',');
+    }
+  }
+  tok.next_token();
+
+  return new FunCall(ident, arguments);
+}
+
 Expression* Parser::parse_value(){
   Expression* e;
+  std::string ident;
 
   switch (tok.current_token()){
   case '(':
@@ -68,8 +88,12 @@ Expression* Parser::parse_value(){
     tok.eat_token(')');
     return e;
   case TOKEN_IDENT:
-    e = new VariableReference(tok.get_text());
-    break;
+    ident = tok.get_text();
+    tok.next_token();
+    if (tok.current_token() == '('){
+      return parse_funcall(ident);
+    }
+    return new VariableReference(ident);
   case TOKEN_FLOAT_VALUE:
     e = new DoubleLiteral(tok.get_float_value());
     break;
@@ -215,9 +239,9 @@ Expression* Parser::parse_ternary(){
   r = parse_logic();    
   if (tok.current_token() == '?'){
     tok.next_token();
-    c = parse_logic();
+    c = parse_ternary();
     tok.eat_token(':');
-    a = parse_logic();
+    a = parse_ternary();
     return new ConditionalExpression(r, c, a);
   }
   return r;
@@ -233,8 +257,8 @@ Expression* Parser::parse_assign(){
     }
     tok.next_token();
     v = parse_assign();
-    delete n;
     r = new Assignment(n->get_name(), ASOP_ASSIGN, v);
+    delete n;
   }
   return r;
 }
@@ -252,6 +276,30 @@ Expression* Parser::parse_comma(){
     default:
       return r;
     }
+  }
+}
+Block* Parser::parse_block(){
+  StatementVector v;
+  Statement* s;
+  tok.eat_token('{');
+  while (tok.current_token() != '}'){
+    if (tok.current_token() == ';'){
+      tok.next_token();
+      continue;
+    }
+    s = parse_statement();
+    v.push_back(s);
+  }
+  return new Block(v); 
+}
+Statement* Parser::parse_statement(){
+  Statement* s;
+
+  switch (tok.current_token()){
+  default:
+    s = parse_comma();
+    tok.eat_token(';');
+    return s;
   }
 }
 
@@ -272,5 +320,7 @@ TopLevelForm* Parser::read_toplevel(){
     return parse_function(type, ident);
   case '=':
     return parse_initializer(type, ident);
+  default:
+    throw new UnexpectedToken(tok.current_token());
   }
 }

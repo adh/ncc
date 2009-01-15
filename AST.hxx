@@ -65,8 +65,8 @@ namespace NCC {
   class BinaryOperation : public Expression {
   protected:
     Expression* left;
-    BinaryOperator op;
     Expression* right;
+    BinaryOperator op;
   public:
     BinaryOperation(Expression* left, Expression* right, BinaryOperator op):
       left(left), right(right), op(op) {};
@@ -77,8 +77,8 @@ namespace NCC {
   class ShortCircuitOperation : public Expression {
   protected:
     Expression* left;
-    ShortCircuitOperator op;
     Expression* right;
+    ShortCircuitOperator op;
   public:
     ShortCircuitOperation(Expression* left, Expression* right, 
                           ShortCircuitOperator op):
@@ -101,9 +101,9 @@ namespace NCC {
 
   class Assignment : public Expression {
   protected:
-    Expression* value;
-    AssignmentOperator op;
     std::string variable;
+    AssignmentOperator op;
+    Expression* value;
   public:
     Assignment(const std::string& variable, 
                AssignmentOperator op, 
@@ -183,6 +183,18 @@ namespace NCC {
     virtual void print(std::ostream& stream, int indent);
   };
 
+  class ConditionalStatement : public Statement {
+  protected:
+    Expression* cond;
+    Statement* cons;
+    Statement* alt;
+  public:
+    ConditionalStatement(Expression* cond, Statement* cons, Statement* alt):
+      cond(cond), cons(cons), alt(alt) {}
+    virtual ~ConditionalStatement();
+    virtual void print(std::ostream& stream, int indent);
+  };
+
   class TopLevelForm : public ASTNode{
   public:
     virtual ~TopLevelForm();
@@ -223,6 +235,9 @@ namespace NCC {
   protected:
     Block* contents;
   public:
+    FunctionDefinition(ValueType type, std::string name, VariableVector arguments,
+                       Block* contents): 
+      FunctionDeclaration(type, name, arguments), contents(contents) {};
     virtual ~FunctionDefinition();
     virtual void print(std::ostream& stream, int indent);
   }; 

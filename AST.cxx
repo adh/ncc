@@ -69,7 +69,7 @@ ConditionalExpression::~ConditionalExpression(){
 }
 void ConditionalExpression::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
-  stream << "ConditionalExpression";
+  stream << "ConditionalExpression" << std::endl;
   cond->print(stream, indent+2);
   cons->print(stream, indent+2);
   alt->print(stream, indent+2);
@@ -119,12 +119,12 @@ void IntegerLiteral::print(std::ostream& stream, int indent){
 DoubleLiteral::~DoubleLiteral(){}
 void DoubleLiteral::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
-  stream << "IntegerLiteral " << value << std::endl;
+  stream << "DoubleLiteral " << value << std::endl;
 }
 StringLiteral::~StringLiteral(){}
 void StringLiteral::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
-  stream << "IntegerLiteral " << value << std::endl;
+  stream << "StringLiteral " << value << std::endl;
 }
 
 Block::~Block() {
@@ -141,6 +141,24 @@ void Block::print(std::ostream& stream, int indent){
     (*i)->print(stream, indent+2);
   }
 }
+
+ConditionalStatement::~ConditionalStatement(){
+  delete cond;
+  delete cons;
+  if (alt) {
+    delete alt;
+  }
+}
+void ConditionalStatement::print(std::ostream& stream, int indent){
+  print_indent(stream, indent);
+  stream << "ConditionalStatement" << std::endl;
+  cond->print(stream, indent+2);
+  cons->print(stream, indent+2);
+  if (alt) {
+    alt->print(stream, indent+2);
+  }
+}
+
 
 TopLevelForm::~TopLevelForm(){}
 
