@@ -140,7 +140,23 @@ void Assignment::print(std::ostream& stream, int indent){
 }
 llvm::Value* Assignment::generate(llvm::LLVMBuilder& builder, 
                                   SymbolTable* st){
-  throw new FeatureNotImplemented("assignment code generation");
+  llvm::Value* val = value->generate(builder, st);
+  Variable& var = st->get_symbol(variable);
+  ValueType val_type = value->get_type(st);
+
+  if (val_type != var.get_type()){
+    if (val_type == TYPE_INTEGER && var.get_type() == TYPE_DOUBLE){
+      val = builder.CreateSIToFP(val, llvm_type(TYPE_DOUBLE));
+    } else if (val_type == TYPE_DOUBLE && 
+               var.get_type() == TYPE_INTEGER){
+      val = builder.CreateFPToSI(val, llvm_type(TYPE_INTEGER));
+    } else {
+      throw new IncompatibleTypes();
+    }
+  }
+
+  builder.CreateStore(val, var.get_address());
+  return val;
 }
 ValueType Assignment::get_type(SymbolTable* st){
   return value->get_type(st);
@@ -226,7 +242,7 @@ llvm::Value* DoubleLiteral::generate(llvm::LLVMBuilder& builder,
                                llvm::APFloat(value));
 }
 ValueType DoubleLiteral::get_type(SymbolTable* st){
-  return TYPE_INTEGER;
+  return TYPE_DOUBLE;
 }
 
 StringLiteral::~StringLiteral(){}
@@ -239,7 +255,7 @@ llvm::Value* StringLiteral::generate(llvm::LLVMBuilder& builder,
   return llvm::ConstantArray::get(value);
 }
 ValueType StringLiteral::get_type(SymbolTable* st){
-  return TYPE_INTEGER;
+  return TYPE_POINTER;
 }
 
 Block::~Block() {

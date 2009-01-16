@@ -62,6 +62,14 @@ namespace ncc {
       return message.c_str();
     }
   };
+  class IncompatibleTypes : public std::exception {
+  public:
+    IncompatibleTypes() throw() {};
+    virtual ~IncompatibleTypes() throw() {};
+    virtual const char* what() const throw () {
+      return "Incompatible types";
+    }    
+  };
 }
 
 #endif
