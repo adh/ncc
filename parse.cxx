@@ -2,7 +2,7 @@
 #include "exceptions.hxx"
 #include <iostream>
 
-using namespace NCC;
+using namespace ncc;
 
 ValueType Parser::parse_type(){
   switch(tok.current_token()){
@@ -48,7 +48,6 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
   default:
     throw new UnexpectedToken(tok.current_token());
   }
-  
 }
 
 Expression* Parser::parse_initializer(){

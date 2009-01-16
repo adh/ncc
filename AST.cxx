@@ -1,12 +1,42 @@
 #include "AST.hxx"
+#include "exceptions.hxx"
 #include <iostream>
+#include <cstdlib>
 
-using namespace NCC;
+#include "llvm/BasicBlock.h"
+
+using namespace ncc;
 
 static void print_indent(std::ostream& stream, int indent){
   while (indent){
     indent--;
     stream.put(' ');
+  }
+}
+
+static std::string type_name(ValueType type){
+  switch (type){
+  case TYPE_INTEGER:
+    return "int";
+  case TYPE_DOUBLE:
+    return "float";
+  case TYPE_POINTER:
+    return "ptr";
+  default:
+    return "<unknown>";
+  }
+}
+
+static const llvm::Type* llvm_type(ValueType type){
+  switch (type){
+  case TYPE_INTEGER:
+    return llvm::Type::Int32Ty;
+  case TYPE_DOUBLE:
+    return llvm::Type::DoubleTy;
+  case TYPE_POINTER:
+    return llvm::PointerType::getUnqual(llvm::OpaqueType::get());
+  default:
+    abort();
   }
 }
 
@@ -43,6 +73,15 @@ void BinaryOperation::print(std::ostream& stream, int indent){
   left->print(stream, indent+2);
   right->print(stream, indent+2);
 }
+llvm::Value* BinaryOperation::generate(llvm::LLVMBuilder& builder,
+                                       SymbolTable* st){
+  throw new FeatureNotImplemented("binop code generation");
+}
+ValueType BinaryOperation::get_type(SymbolTable* st){
+  return TYPE_INTEGER;
+}
+
+
 ShortCircuitOperation::~ShortCircuitOperation(){
   delete left;
   delete right;
@@ -61,6 +100,14 @@ void ShortCircuitOperation::print(std::ostream& stream, int indent){
   left->print(stream, indent+2);
   right->print(stream, indent+2);
 }
+llvm::Value* ShortCircuitOperation::generate(llvm::LLVMBuilder& builder,
+                                             SymbolTable* st){
+  throw new FeatureNotImplemented("scop code generation");
+}
+ValueType ShortCircuitOperation::get_type(SymbolTable* st){
+  return TYPE_INTEGER;
+}
+
 
 ConditionalExpression::~ConditionalExpression(){
   delete cond;
@@ -74,6 +121,13 @@ void ConditionalExpression::print(std::ostream& stream, int indent){
   cons->print(stream, indent+2);
   alt->print(stream, indent+2);
 }
+llvm::Value* ConditionalExpression::generate(llvm::LLVMBuilder& builder,
+                                             SymbolTable* st){
+  throw new FeatureNotImplemented("ternary code generation");
+}
+ValueType ConditionalExpression::get_type(SymbolTable* st){
+  return TYPE_INTEGER;
+}
 
 
 Assignment::~Assignment(){
@@ -84,6 +138,15 @@ void Assignment::print(std::ostream& stream, int indent){
   stream << "Assignment into " << variable << std::endl;
   value->print(stream, indent+2);
 }
+llvm::Value* Assignment::generate(llvm::LLVMBuilder& builder, 
+                                  SymbolTable* st){
+  throw new FeatureNotImplemented("assignment code generation");
+}
+ValueType Assignment::get_type(SymbolTable* st){
+  return value->get_type(st);
+}
+
+
 UnaryOperation::~UnaryOperation(){
   delete expr;
 }
@@ -92,6 +155,15 @@ void UnaryOperation::print(std::ostream& stream, int indent){
   stream << "UnaryOperation -" << std::endl;
   expr->print(stream, indent+2);
 }
+llvm::Value* UnaryOperation::generate(llvm::LLVMBuilder& builder, 
+                                      SymbolTable* st){
+  throw new FeatureNotImplemented("unop code generation");
+}
+ValueType UnaryOperation::get_type(SymbolTable* st){
+  return expr->get_type(st);
+}
+
+
 FunCall::~FunCall(){
   for (ExpressionVector::iterator i = arguments.begin();
        i != arguments.end(); i++){
@@ -106,25 +178,68 @@ void FunCall::print(std::ostream& stream, int indent){
     (*i)->print(stream, indent+2);
   }
 }
+llvm::Value* FunCall::generate(llvm::LLVMBuilder& builder, 
+                               SymbolTable* st){
+  throw new FeatureNotImplemented("funcall code generation");
+}
+ValueType FunCall::get_type(SymbolTable* st){
+  return TYPE_INTEGER;
+}
+
+
 VariableReference::~VariableReference(){}
 void VariableReference::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
   stream << "VariableReference " << name << std::endl;
 }
+llvm::Value* VariableReference::generate(llvm::LLVMBuilder& builder, 
+                                         SymbolTable* st){
+  Variable& v = st->get_symbol(name);
+
+  return builder.CreateLoad(v.get_address(), name.c_str());
+}
+ValueType VariableReference::get_type(SymbolTable* st){
+  return st->get_symbol(name).get_type();
+}
+
+
 IntegerLiteral::~IntegerLiteral(){}
 void IntegerLiteral::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
   stream << "IntegerLiteral " << value << std::endl;
+}
+llvm::Value* IntegerLiteral::generate(llvm::LLVMBuilder& builder, 
+                                         SymbolTable* st){
+  return llvm::ConstantInt::get(llvm::APInt(32, value, true));
+}
+ValueType IntegerLiteral::get_type(SymbolTable* st){
+  return TYPE_INTEGER;
 }
 DoubleLiteral::~DoubleLiteral(){}
 void DoubleLiteral::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
   stream << "DoubleLiteral " << value << std::endl;
 }
+llvm::Value* DoubleLiteral::generate(llvm::LLVMBuilder& builder, 
+                                         SymbolTable* st){
+  return llvm::ConstantFP::get(llvm::Type::DoubleTy, 
+                               llvm::APFloat(value));
+}
+ValueType DoubleLiteral::get_type(SymbolTable* st){
+  return TYPE_INTEGER;
+}
+
 StringLiteral::~StringLiteral(){}
 void StringLiteral::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
   stream << "StringLiteral " << value << std::endl;
+}
+llvm::Value* StringLiteral::generate(llvm::LLVMBuilder& builder, 
+                                         SymbolTable* st){
+  return llvm::ConstantArray::get(value);
+}
+ValueType StringLiteral::get_type(SymbolTable* st){
+  return TYPE_INTEGER;
 }
 
 Block::~Block() {
@@ -140,6 +255,14 @@ void Block::print(std::ostream& stream, int indent){
        i != statements.end(); i++){
     (*i)->print(stream, indent+2);
   }
+}
+llvm::Value* Block::generate(llvm::LLVMBuilder& builder, 
+                             SymbolTable* st){
+  for (StatementVector::iterator i = statements.begin();
+       i != statements.end(); i++){
+    (*i)->generate(builder, st);
+  }
+  return NULL;
 }
 
 ConditionalStatement::~ConditionalStatement(){
@@ -158,8 +281,20 @@ void ConditionalStatement::print(std::ostream& stream, int indent){
     alt->print(stream, indent+2);
   }
 }
+llvm::Value* ConditionalStatement::generate(llvm::LLVMBuilder& builder, 
+                                            SymbolTable* st){
+  throw new FeatureNotImplemented("cond code generation");
+}
+
+
 ReturnStatement::~ReturnStatement(){
   delete expr;
+}
+llvm::Value* ReturnStatement::generate(llvm::LLVMBuilder& builder, 
+                                       SymbolTable* st){
+  llvm::Value* ret = expr->generate(builder, st);
+  builder.CreateRet(ret);
+  return NULL;
 }
 void ReturnStatement::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
@@ -177,6 +312,10 @@ void WhileStatement::print(std::ostream& stream, int indent){
   cond->print(stream, indent+2);
   body->print(stream, indent+2);
 }
+llvm::Value* WhileStatement::generate(llvm::LLVMBuilder& builder, 
+                                       SymbolTable* st){
+  throw new FeatureNotImplemented("while code generation");
+}
 
 
 TopLevelForm::~TopLevelForm(){}
@@ -189,11 +328,17 @@ LocalVariable::~LocalVariable(){
 }
 void LocalVariable::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
-  stream << "LocalVariable " << name << std::endl; 
+  stream << "LocalVariable " << type_name(type) << " " << name <<  std::endl; 
   if (value){
     value->print(stream, indent+2);
   }
 }
+llvm::Value* LocalVariable::generate(llvm::LLVMBuilder& builder, 
+                                     SymbolTable* st){
+  throw new FeatureNotImplemented("lvar");
+}
+
+
 GlobalVariable::~GlobalVariable(){
   if (value){
     delete value;
@@ -201,14 +346,31 @@ GlobalVariable::~GlobalVariable(){
 }
 void GlobalVariable::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
-  stream << "GlobalVariable " << name << std::endl; 
+  stream << "GlobalVariable " << type_name(type) << " " << name << std::endl; 
   if (value){
     value->print(stream, indent+2);
   }
 }
+void GlobalVariable::generate(llvm::Module* module,
+                              SymbolTable* st){
+  llvm::GlobalVariable* gv;
+  if (value){
+    throw new FeatureNotImplemented("global initializers");
+  }
+  
+  gv = new llvm::GlobalVariable(llvm_type(type),
+                                false,
+                                llvm::GlobalValue::ExternalLinkage,
+                                llvm::UndefValue::get(llvm_type(type)),
+                                name,
+                                module);
+
+  st->put_symbol(name, Variable(gv, type));
+}
+
 void Argument::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
-  stream << "Argument" << name << std::endl; 
+  stream << "Argument " << type_name(type) << " " << name << std::endl; 
 }
 
 FunctionDeclaration::~FunctionDeclaration(){
@@ -224,6 +386,31 @@ void FunctionDeclaration::print(std::ostream& stream, int indent){
     (*i)->print(stream, indent+2);
   }
 }
+void FunctionDeclaration::generate(llvm::Module* module,
+                                   SymbolTable* st){
+  std::vector<const llvm::Type*> arg_types;
+  for (ArgumentVector::iterator i = arguments.begin();
+       i != arguments.end(); i++){
+    arg_types.push_back(llvm_type((*i)->get_type()));
+  }
+
+  llvm::FunctionType* t = llvm::FunctionType::get(llvm_type(type), 
+                                                  arg_types, 
+                                                  false);
+  llvm::Function* f = 
+    new llvm::Function(t, 
+                       llvm::GlobalValue::ExternalLinkage,
+                       name,
+                       module);
+
+  llvm::Function::arg_iterator j = f->arg_begin();
+  for (ArgumentVector::iterator i = arguments.begin();
+       i != arguments.end(); i++, j++){
+    j->setName((*i)->get_name());
+  }
+}
+
+
 FunctionDefinition::~FunctionDefinition(){
   delete contents;
 }
@@ -235,4 +422,41 @@ void FunctionDefinition::print(std::ostream& stream, int indent){
     (*i)->print(stream, indent+4);
   }
   contents->print(stream, indent+2);
+}
+void FunctionDefinition::generate(llvm::Module* module,
+                                  SymbolTable* st){
+  std::vector<const llvm::Type*> arg_types;
+  for (ArgumentVector::iterator i = arguments.begin();
+       i != arguments.end(); i++){
+    arg_types.push_back(llvm_type((*i)->get_type()));
+  }
+
+  llvm::FunctionType* t = llvm::FunctionType::get(llvm_type(type), 
+                                                  arg_types, 
+                                                  false);
+  llvm::Function* f = 
+    new llvm::Function(t, 
+                       llvm::GlobalValue::ExternalLinkage,
+                       name,
+                       module);
+  SymbolTable fst(st);
+  llvm::BasicBlock* entry = new llvm::BasicBlock("entry", f);
+  llvm::LLVMBuilder builder(entry);
+
+  llvm::Function::arg_iterator j = f->arg_begin();
+  for (ArgumentVector::iterator i = arguments.begin();
+       i != arguments.end(); i++, j++){
+    llvm::Value* ptr;
+    j->setName((*i)->get_name());
+    ptr = builder.CreateAlloca(llvm_type((*i)->get_type()), 
+                               0, 
+                               (*i)->get_name().c_str());
+    builder.CreateStore(j, ptr);
+    fst.put_symbol((*i)->get_name(), Variable(ptr, (*i)->get_type()));
+  }
+
+
+  contents->generate(builder, &fst);
+
+  builder.CreateRet(llvm::UndefValue::get(llvm_type(type)));
 }

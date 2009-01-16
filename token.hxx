@@ -4,13 +4,9 @@
 #include <string>
 #include <iostream>
 
-namespace NCC {
-  std::string get_token_name(char token);
-}
-
 #include "exceptions.hxx"
 
-namespace NCC {
+namespace ncc {
   static const char TOKEN_EOF = 0;
   static const char TOKEN_INT_VALUE = 1;
   static const char TOKEN_FLOAT_VALUE = 2;
@@ -73,7 +69,7 @@ namespace NCC {
     void next_token();
     void eat_token(char expected){
       if (current_token() != expected){
-        throw new ExpectedToken(expected, current_token());
+        //throw new ExpectedToken(expected, current_token());
       }
       next_token();
     }

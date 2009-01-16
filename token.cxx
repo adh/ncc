@@ -3,7 +3,7 @@
 #include <cctype>
 #include <cstdlib>
 
-using namespace NCC;
+using namespace ncc;
 
 struct TokenName {
   char token;
@@ -29,8 +29,8 @@ static TokenName token_names[] = {
   TOKEN_NAME(EQUAL),
 };
 
-std::string NCC::get_token_name(char token){
-  int i;
+std::string ncc::get_token_name(char token){
+  unsigned int i;
   for (i = 0; i < sizeof(token_names) / sizeof(TokenName); i++){
     if (token_names[i].token == token){
       return token_names[i].name;
@@ -59,7 +59,7 @@ static Keyword keywords[] = {
 };
 
 static char keyword_token(const std::string& token){
-  int i;
+  unsigned int i;
   for (i = 0; i < sizeof(keywords) / sizeof(Keyword); i++){
     if (keywords[i].name == token){
       return keywords[i].token;

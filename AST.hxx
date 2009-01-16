@@ -1,6 +1,8 @@
 #ifndef HXX__ncc__AST__
 #define HXX__ncc__AST__
 
+#include "symbol.hxx"
+
 #include "llvm/DerivedTypes.h"
 #include "llvm/Module.h"
 #include "llvm/Analysis/Verifier.h"
@@ -9,45 +11,7 @@
 #include <vector>
 #include <string>
 
-namespace NCC {
-  enum ValueType {
-    TYPE_INTEGER,
-    TYPE_DOUBLE,
-    TYPE_POINTER
-  };
-
-  enum BinaryOperator {
-    BINOP_ADD,
-    BINOP_MUL,
-    BINOP_SUB,
-    BINOP_DIV,
-    BINOP_OR,
-    BINOP_AND,
-    BINOP_XOR,
-    BINOP_EQ,
-    BINOP_NEQ,
-    BINOP_GT,
-    BINOP_LT,
-    BINOP_GTE,
-    BINOP_LTE,
-    BINOP_COMMA
-  };
-
-  enum UnaryOperator {
-    UNOP_INV,
-    UNOP_NOT,
-    UNOP_LOG_NOT
-  };
-
-  enum ShortCircuitOperator {
-    SCOP_OR,
-    SCOP_AND
-  };
-
-  enum AssignmentOperator {
-    ASOP_ASSIGN
-  };
-
+namespace ncc {
   class ASTNode {
   public:
     virtual void print(std::ostream& stream, int indent) = 0;
@@ -57,14 +21,15 @@ namespace NCC {
   class Statement : public ASTNode{
   public:
     virtual ~Statement();
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st) = 0;
   };
   typedef std::vector<Statement *> StatementVector;
 
   class Expression : public Statement{
   public:
     virtual ~Expression();
-    //    virtual bool is_constant() = 0;
-    //    virtual ValueType type() = 0;
+    virtual ValueType get_type(SymbolTable* st) = 0;
   };
   typedef std::vector<Expression *> ExpressionVector;
     
@@ -78,6 +43,10 @@ namespace NCC {
       left(left), right(right), op(op) {};
     virtual ~BinaryOperation();
     virtual void print(std::ostream& stream, int indent);
+
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
 
   class ShortCircuitOperation : public Expression {
@@ -91,6 +60,9 @@ namespace NCC {
       left(left), right(right), op(op) {};
     virtual ~ShortCircuitOperation();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
 
   class ConditionalExpression : public Expression {
@@ -103,6 +75,9 @@ namespace NCC {
       cond(cond), cons(cons), alt(alt) {}
     virtual ~ConditionalExpression();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
 
   class Assignment : public Expression {
@@ -116,6 +91,9 @@ namespace NCC {
                Expression* value) : variable(variable), op(op), value(value) {}
     virtual ~Assignment();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
 
   class UnaryOperation : public Expression {
@@ -126,6 +104,9 @@ namespace NCC {
     UnaryOperation(Expression* e, UnaryOperator op): expr(e), op(op) {};
     virtual ~UnaryOperation();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
 
   class FunCall : public Expression {
@@ -139,6 +120,9 @@ namespace NCC {
 
     virtual ~FunCall();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
 
   class VariableReference : public Expression {
@@ -151,6 +135,9 @@ namespace NCC {
     const std::string& get_name(){
       return name;
     }
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
 
   class IntegerLiteral : public Expression {
@@ -160,6 +147,9 @@ namespace NCC {
     IntegerLiteral(int value):value(value){}
     virtual ~IntegerLiteral();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
 
   class DoubleLiteral : public Expression {
@@ -169,6 +159,9 @@ namespace NCC {
     DoubleLiteral(double value): value(value) {}
     virtual ~DoubleLiteral();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
 
   class StringLiteral : public Expression {
@@ -178,6 +171,9 @@ namespace NCC {
     StringLiteral(const std::string& value): value(value) {}
     virtual ~StringLiteral();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
+    virtual ValueType get_type(SymbolTable* st);
   };
   
   class Block : public Statement {
@@ -187,6 +183,8 @@ namespace NCC {
     Block(const StatementVector& statements): statements(statements) {}
     virtual ~Block();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
   };
 
   class ConditionalStatement : public Statement {
@@ -199,6 +197,8 @@ namespace NCC {
       cond(cond), cons(cons), alt(alt) {}
     virtual ~ConditionalStatement();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
   };
 
   class ReturnStatement : public Statement {
@@ -208,6 +208,8 @@ namespace NCC {
     ReturnStatement(Expression* expr): expr(expr) {};
     virtual ~ReturnStatement();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
   };
   class WhileStatement : public Statement {
   protected:
@@ -218,11 +220,15 @@ namespace NCC {
       cond(cond), body(body) {}
     virtual ~WhileStatement();
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
   };
 
   class TopLevelForm : public ASTNode{
   public:
     virtual ~TopLevelForm();
+    virtual void generate(llvm::Module* module,
+                          SymbolTable* st) = 0;
   };
   class LocalVariable : public Statement {
   protected:
@@ -235,6 +241,8 @@ namespace NCC {
       type(type), name(name), value(value) {}
     virtual ~LocalVariable();    
     virtual void print(std::ostream& stream, int indent);
+    virtual llvm::Value* generate(llvm::LLVMBuilder& builder,
+                                  SymbolTable* st);
   };
 
   class GlobalVariable : public TopLevelForm {
@@ -248,6 +256,8 @@ namespace NCC {
       type(type), name(name), value(value) {}
     virtual ~GlobalVariable();    
     virtual void print(std::ostream& stream, int indent);
+    virtual void generate(llvm::Module* module,
+                          SymbolTable* st);
   };
 
   class Argument : public ASTNode {
@@ -259,6 +269,12 @@ namespace NCC {
       type(type), name(name) {}
     //virtual ~Argument();    
     virtual void print(std::ostream& stream, int indent);
+    const std::string get_name(){
+      return name;
+    }
+    ValueType get_type(){
+      return type;
+    }
   };
   typedef std::vector<Argument*> ArgumentVector;
 
@@ -272,6 +288,8 @@ namespace NCC {
       type(type), name(name), arguments(arguments) {};
     virtual ~FunctionDeclaration();
     virtual void print(std::ostream& stream, int indent);
+    virtual void generate(llvm::Module* module,
+                          SymbolTable* st);
   };
   class FunctionDefinition : public FunctionDeclaration {
   protected:
@@ -282,6 +300,8 @@ namespace NCC {
       FunctionDeclaration(type, name, arguments), contents(contents) {};
     virtual ~FunctionDefinition();
     virtual void print(std::ostream& stream, int indent);
+    virtual void generate(llvm::Module* module,
+                          SymbolTable* st);
   }; 
 }
 

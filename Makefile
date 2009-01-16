@@ -1,4 +1,4 @@
-SRCS = AST.cxx main.cxx token.cxx parse.cxx
+SRCS = AST.cxx main.cxx token.cxx parse.cxx commandoptions.cxx
 CPPFLAGS   = `llvm-config --cppflags`
 CXXFLAGS   = -g -Wall $(CPPFLAGS) `llvm-config --cxxflags core`
 LDFLAGS    = `llvm-config --ldflags core` 

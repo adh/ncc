@@ -1,7 +1,7 @@
 #include "AST.hxx"
 #include "token.hxx"
 
-namespace NCC{
+namespace ncc{
   class Parser {
   protected:
     Tokenizer& tok;

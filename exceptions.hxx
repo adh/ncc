@@ -1,12 +1,12 @@
 #ifndef HXX__ncc__exceptions__
 #define HXX__ncc__exceptions__
 
-#include "token.hxx"
+#include "types.hxx"
 
 #include <string>
 #include <exception>
 
-namespace NCC {
+namespace ncc {
   class UnexpectedToken : public std::exception {
   private:
     std::string message;
@@ -39,6 +39,28 @@ namespace NCC {
     virtual const char* what() const throw () {
       return "Invalid token";
     }    
+  };
+  class FeatureNotImplemented : public std::exception {
+  private:
+    std::string message;
+  public:
+    FeatureNotImplemented(const std::string& message) throw(): 
+      message("Feature not implemented: " + message) {}
+    virtual ~FeatureNotImplemented() throw() {};
+    virtual const char* what() const throw () {
+      return message.c_str();
+    }
+  };
+  class UnknownSymbol : public std::exception {
+  private:
+    std::string message;
+  public:
+    UnknownSymbol(const std::string& message) throw(): 
+      message("Unknown symbol: " + message) {}
+    virtual ~UnknownSymbol() throw() {};
+    virtual const char* what() const throw () {
+      return message.c_str();
+    }
   };
 }
 
