@@ -22,6 +22,8 @@ static std::string type_name(ValueType type){
     return "float";
   case TYPE_POINTER:
     return "ptr";
+  case TYPE_VOID:
+    return "<void>";
   default:
     return "<unknown>";
   }
@@ -111,6 +113,10 @@ llvm::Value* BinaryOperation::generate(llvm::LLVMBuilder& builder,
   lv = left->generate(builder, st);
   rv = right->generate(builder, st);
 
+  if (op == BINOP_COMMA){
+    return rv;
+  }
+
   lv = coerce_value(builder, lv, left->get_type(st), type);
   rv = coerce_value(builder, rv, right->get_type(st), type);
 
@@ -149,15 +155,15 @@ llvm::Value* BinaryOperation::generate(llvm::LLVMBuilder& builder,
     }
     rt = builder.CreateXor(lv, rv, "bor");
     return rt;
-
-  case BINOP_COMMA:
-    return rv;
   }
-
   throw new FeatureNotImplemented("binop code generation");
 }
 ValueType BinaryOperation::get_type(SymbolTable* st){
-  ValueType res = coerce_type(left->get_type(st), right->get_type(st));
+  ValueType res;
+  if (op == BINOP_COMMA){
+    return right->get_type(st);
+  }
+  res = coerce_type(left->get_type(st), right->get_type(st));
   if (res == TYPE_POINTER){
     throw new IncompatibleTypes(); 
     /* no operations are valid with pointer type */
@@ -393,6 +399,7 @@ ReturnStatement::~ReturnStatement(){
 llvm::Value* ReturnStatement::generate(llvm::LLVMBuilder& builder, 
                                        SymbolTable* st){
   llvm::Value* ret = expr->generate(builder, st);
+  ret = coerce_value(builder, ret, expr->get_type(st), st->get_lex_rtype());
   builder.CreateRet(ret);
   return NULL;
 }
@@ -539,7 +546,7 @@ void FunctionDefinition::generate(llvm::Module* module,
                        llvm::GlobalValue::ExternalLinkage,
                        name,
                        module);
-  SymbolTable fst(st);
+  SymbolTable fst(st, type);
   llvm::BasicBlock* entry = new llvm::BasicBlock("entry", f);
   llvm::LLVMBuilder builder(entry);
 
