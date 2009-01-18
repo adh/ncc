@@ -40,6 +40,24 @@ static const llvm::Type* llvm_type(ValueType type){
   }
 }
 
+static ValueType coerce_type(ValueType left, ValueType right){
+  if (left == right){
+    return left;
+  }
+  if (left == TYPE_DOUBLE && right == TYPE_INTEGER){
+    return TYPE_DOUBLE;
+  }
+  if (right == TYPE_DOUBLE && left == TYPE_INTEGER){
+    return TYPE_DOUBLE;
+  }
+  throw new IncompatibleTypes();
+}
+
+static llvm::Value* coerce_value(llvm::Value*& val, 
+                                ValueType vt, ValueType res){
+  
+}
+
 #define NAME(x) #x
 static const char* binop_names[] = {
   NAME(BINOP_ADD),
@@ -251,8 +269,8 @@ void StringLiteral::print(std::ostream& stream, int indent){
   stream << "StringLiteral " << value << std::endl;
 }
 llvm::Value* StringLiteral::generate(llvm::LLVMBuilder& builder, 
-                                         SymbolTable* st){
-  return llvm::ConstantArray::get(value);
+                                     SymbolTable* st){
+  return NULL;
 }
 ValueType StringLiteral::get_type(SymbolTable* st){
   return TYPE_POINTER;
