@@ -53,9 +53,19 @@ static ValueType coerce_type(ValueType left, ValueType right){
   throw new IncompatibleTypes();
 }
 
-static llvm::Value* coerce_value(llvm::Value*& val, 
-                                ValueType vt, ValueType res){
-  
+static llvm::Value* coerce_value(llvm::LLVMBuilder& builder,
+                                 llvm::Value* val, 
+                                 ValueType vt, ValueType res){
+  if (vt == res){
+    return val;
+  }
+  if (vt == TYPE_DOUBLE && res == TYPE_INTEGER){
+    return builder.CreateFPToSI(val, llvm_type(TYPE_INTEGER));
+  }
+  if (vt == TYPE_INTEGER && res == TYPE_DOUBLE){
+    return builder.CreateSIToFP(val, llvm_type(TYPE_DOUBLE));
+  }
+  throw new IncompatibleTypes();  
 }
 
 #define NAME(x) #x
