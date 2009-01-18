@@ -60,10 +60,10 @@ static llvm::Value* coerce_value(llvm::LLVMBuilder& builder,
     return val;
   }
   if (vt == TYPE_DOUBLE && res == TYPE_INTEGER){
-    return builder.CreateFPToSI(val, llvm_type(TYPE_INTEGER));
+    return builder.CreateFPToSI(val, llvm_type(TYPE_INTEGER), "cti");
   }
   if (vt == TYPE_INTEGER && res == TYPE_DOUBLE){
-    return builder.CreateSIToFP(val, llvm_type(TYPE_DOUBLE));
+    return builder.CreateSIToFP(val, llvm_type(TYPE_DOUBLE), "ctd");
   }
   throw new IncompatibleTypes();  
 }
@@ -103,10 +103,66 @@ void BinaryOperation::print(std::ostream& stream, int indent){
 }
 llvm::Value* BinaryOperation::generate(llvm::LLVMBuilder& builder,
                                        SymbolTable* st){
+  llvm::Value* lv;
+  llvm::Value* rv;
+  llvm::Value* rt;
+  ValueType type = get_type(st);
+
+  lv = left->generate(builder, st);
+  rv = right->generate(builder, st);
+
+  lv = coerce_value(builder, lv, left->get_type(st), type);
+  rv = coerce_value(builder, rv, right->get_type(st), type);
+
+  switch(op){
+  case BINOP_ADD:
+    rt = builder.CreateAdd(lv, rv, "bor");
+    return rt;
+  case BINOP_SUB:
+    rt = builder.CreateSub(lv, rv, "bor");
+    return rt;
+  case BINOP_MUL:
+    rt = builder.CreateMul(lv, rv, "bor");
+    return rt;
+  case BINOP_DIV:
+    if (type == TYPE_DOUBLE){
+      rt = builder.CreateFDiv(lv, rv, "bor");
+    } else {
+      rt = builder.CreateSDiv(lv, rv, "bor");
+    }
+    return rt;
+  case BINOP_OR:
+    if (type == TYPE_DOUBLE){
+      throw new IncompatibleTypes();
+    }
+    rt = builder.CreateOr(lv, rv, "bor");
+    return rt;
+  case BINOP_AND:
+    if (type == TYPE_DOUBLE){
+      throw new IncompatibleTypes();
+    }
+    rt = builder.CreateAnd(lv, rv, "bor");
+    return rt;
+  case BINOP_XOR:
+    if (type == TYPE_DOUBLE){
+      throw new IncompatibleTypes();
+    }
+    rt = builder.CreateXor(lv, rv, "bor");
+    return rt;
+
+  case BINOP_COMMA:
+    return rv;
+  }
+
   throw new FeatureNotImplemented("binop code generation");
 }
 ValueType BinaryOperation::get_type(SymbolTable* st){
-  return TYPE_INTEGER;
+  ValueType res = coerce_type(left->get_type(st), right->get_type(st));
+  if (res == TYPE_POINTER){
+    throw new IncompatibleTypes(); 
+    /* no operations are valid with pointer type */
+  }
+  return res;
 }
 
 
