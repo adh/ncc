@@ -108,7 +108,11 @@ llvm::Value* BinaryOperation::generate(llvm::LLVMBuilder& builder,
   llvm::Value* lv;
   llvm::Value* rv;
   llvm::Value* rt;
-  ValueType type = get_type(st);
+  ValueType type = coerce_type(left->get_type(st), right->get_type(st));
+
+  if (type == TYPE_POINTER){
+    throw new IncompatibleTypes();
+  }
 
   lv = left->generate(builder, st);
   rv = right->generate(builder, st);
@@ -155,20 +159,72 @@ llvm::Value* BinaryOperation::generate(llvm::LLVMBuilder& builder,
     }
     rt = builder.CreateXor(lv, rv, "bor");
     return rt;
+  case BINOP_EQ:
+    if (type == TYPE_DOUBLE){
+      rt = builder.CreateFCmpOEQ(lv, rv, "rt");
+    } else {
+      rt = builder.CreateICmpEQ(lv, rv, "rt");
+    }
+    rt = builder.CreateZExt(rt, llvm_type(TYPE_INTEGER), "bor");
+    return rt;
+  case BINOP_NEQ:
+    if (type == TYPE_DOUBLE){
+      rt = builder.CreateFCmpONE(lv, rv, "rt");
+    } else {
+      rt = builder.CreateICmpNE(lv, rv, "rt");
+    }
+    rt = builder.CreateZExt(rt, llvm_type(TYPE_INTEGER), "bor");
+    return rt;
+  case BINOP_GT:
+    if (type == TYPE_DOUBLE){
+      rt = builder.CreateFCmpOGT(lv, rv, "rt");
+    } else {
+      rt = builder.CreateICmpSGT(lv, rv, "rt");
+    }
+    rt = builder.CreateZExt(rt, llvm_type(TYPE_INTEGER), "bor");
+    return rt;
+  case BINOP_GTE:
+    if (type == TYPE_DOUBLE){
+      rt = builder.CreateFCmpOGE(lv, rv, "rt");
+    } else {
+      rt = builder.CreateICmpSGE(lv, rv, "rt");
+    }
+    rt = builder.CreateZExt(rt, llvm_type(TYPE_INTEGER), "bor");
+    return rt;
+  case BINOP_LT:
+    if (type == TYPE_DOUBLE){
+      rt = builder.CreateFCmpOLT(lv, rv, "rt");
+    } else {
+      rt = builder.CreateICmpSLT(lv, rv, "rt");
+    }
+    rt = builder.CreateZExt(rt, llvm_type(TYPE_INTEGER), "bor");
+    return rt;
+  case BINOP_LTE:
+    if (type == TYPE_DOUBLE){
+      rt = builder.CreateFCmpOLE(lv, rv, "rt");
+    } else {
+      rt = builder.CreateICmpSLE(lv, rv, "rt");
+    }
+    rt = builder.CreateZExt(rt, llvm_type(TYPE_INTEGER), "bor");
+    return rt;
+  case BINOP_COMMA:;/* not reached */
   }
   throw new FeatureNotImplemented("binop code generation");
 }
 ValueType BinaryOperation::get_type(SymbolTable* st){
-  ValueType res;
-  if (op == BINOP_COMMA){
+  switch (op){
+  case BINOP_COMMA:
     return right->get_type(st);
+  case BINOP_EQ:
+  case BINOP_NEQ:
+  case BINOP_GT:
+  case BINOP_LT:
+  case BINOP_GTE:
+  case BINOP_LTE:
+    return TYPE_INTEGER;
+  default:
+    return coerce_type(left->get_type(st), right->get_type(st));
   }
-  res = coerce_type(left->get_type(st), right->get_type(st));
-  if (res == TYPE_POINTER){
-    throw new IncompatibleTypes(); 
-    /* no operations are valid with pointer type */
-  }
-  return res;
 }
 
 
