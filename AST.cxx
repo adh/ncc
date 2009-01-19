@@ -784,7 +784,6 @@ void FunctionDefinition::generate(llvm::Module* module,
     fst.put_symbol((*i)->get_name(), Variable(ptr, (*i)->get_type()));
   }
 
-
   contents->generate(builder, &fst);
   builder.CreateBr(epilog);
 }
