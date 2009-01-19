@@ -31,7 +31,9 @@ int test_ternary(){
   return (0?to_cons:to_alt) == 37;
 }
 int test_short_circuit(){
-  
+  int a = 3;
+  int b = 2;
+  return (1 && (b || 0)) == 2;
 }
 
 int main(){
@@ -50,6 +52,9 @@ int main(){
   }
   if (!test_ternary()){
     return 5;
+  }
+  if (!test_short_circuit()){
+    return 6;
   }
   return 0; /* success */
 }
