@@ -269,10 +269,36 @@ void ConditionalExpression::print(std::ostream& stream, int indent){
 }
 llvm::Value* ConditionalExpression::generate(llvm::LLVMBuilder& builder,
                                              SymbolTable* st){
-  throw new FeatureNotImplemented("ternary code generation");
+  llvm::Function* f = builder.GetInsertBlock()->getParent();
+  llvm::BasicBlock* then = new llvm::BasicBlock("cons", f);
+  llvm::Value* t_val;
+  llvm::BasicBlock* els = new llvm::BasicBlock("alt", f);
+  llvm::Value* e_val;
+  llvm::BasicBlock* cont = new llvm::BasicBlock("cont", f);
+  llvm::Value* c = cond->generate(builder, st);
+  c = coerce_value(builder, c, cond->get_type(st), TYPE_INTEGER);
+  c = builder.CreateICmpNE(c, 
+                           llvm::ConstantInt::get(llvm::APInt(32, 0, true)),
+                           "condition");
+  builder.CreateCondBr(c, then, els);
+  
+  builder.SetInsertPoint(then);
+  t_val = cons->generate(builder, st);
+  builder.CreateBr(cont);
+  builder.SetInsertPoint(els);
+  e_val = alt->generate(builder, st);
+  builder.CreateBr(cont);
+  builder.SetInsertPoint(cont);
+  llvm::PHINode* p = builder.CreatePHI(llvm_type(get_type(st)));
+  p->addIncoming(t_val, then);
+  p->addIncoming(e_val, els);
+  return p;
 }
 ValueType ConditionalExpression::get_type(SymbolTable* st){
-  return TYPE_INTEGER;
+  if (cons->get_type(st) != alt->get_type(st)){
+    throw new IncompatibleTypes();
+  }
+  return cons->get_type(st);
 }
 
 
@@ -344,7 +370,7 @@ llvm::Value* UnaryOperation::generate(llvm::LLVMBuilder& builder,
                              llvm::ConstantInt::get(llvm::APInt(32, 0, true)),
                              "lnt");
     v = builder.CreateZExt(v, llvm_type(TYPE_INTEGER), "lnze");
-    break;
+    return v;
   }
 }
 ValueType UnaryOperation::get_type(SymbolTable* st){
@@ -437,8 +463,8 @@ void StringLiteral::print(std::ostream& stream, int indent){
 }
 llvm::Value* StringLiteral::generate(llvm::LLVMBuilder& builder, 
                                      SymbolTable* st){
-  llvm::Module* m = builder.GetInsertBlock()->getParent()->getParent();
-  
+  //  llvm::Module* m = builder.GetInsertBlock()->getParent()->getParent();
+  throw new FeatureNotImplemented("string literals");
 }
 ValueType StringLiteral::get_type(SymbolTable* st){
   return TYPE_POINTER;
@@ -486,9 +512,9 @@ void ConditionalStatement::print(std::ostream& stream, int indent){
 llvm::Value* ConditionalStatement::generate(llvm::LLVMBuilder& builder, 
                                             SymbolTable* st){
   llvm::Function* f = builder.GetInsertBlock()->getParent();
-  llvm::BasicBlock* then = new llvm::BasicBlock("consequent", f);
-  llvm::BasicBlock* els = new llvm::BasicBlock("alternative", f);
-  llvm::BasicBlock* cont = new llvm::BasicBlock("continuation", f);
+  llvm::BasicBlock* then = new llvm::BasicBlock("cons", f);
+  llvm::BasicBlock* els = new llvm::BasicBlock("alt", f);
+  llvm::BasicBlock* cont = new llvm::BasicBlock("cont", f);
   llvm::Value* c = cond->generate(builder, st);
   c = coerce_value(builder, c, cond->get_type(st), TYPE_INTEGER);
   c = builder.CreateICmpNE(c, 
@@ -505,6 +531,7 @@ llvm::Value* ConditionalStatement::generate(llvm::LLVMBuilder& builder,
   }
   builder.CreateBr(cont);
   builder.SetInsertPoint(cont);
+  return NULL;
 }
 
 
@@ -537,7 +564,26 @@ void WhileStatement::print(std::ostream& stream, int indent){
 }
 llvm::Value* WhileStatement::generate(llvm::LLVMBuilder& builder, 
                                        SymbolTable* st){
-  throw new FeatureNotImplemented("while code generation");
+  llvm::Function* f = builder.GetInsertBlock()->getParent();
+  llvm::BasicBlock* l_wc = new llvm::BasicBlock("wcond", f);
+  llvm::BasicBlock* l_body = new llvm::BasicBlock("wbody", f);
+  llvm::BasicBlock* l_cont = new llvm::BasicBlock("cont", f);
+  llvm::Value* c;
+  builder.CreateBr(l_wc);
+  builder.SetInsertPoint(l_wc);
+  c = cond->generate(builder, st);
+  c = coerce_value(builder, c, cond->get_type(st), TYPE_INTEGER);
+  c = builder.CreateICmpNE(c, 
+                           llvm::ConstantInt::get(llvm::APInt(32, 0, true)),
+                           "condition");
+  builder.CreateCondBr(c, l_body, l_cont);
+  
+  builder.SetInsertPoint(l_body);
+  body->generate(builder, st);
+  builder.CreateBr(l_wc);
+
+  builder.SetInsertPoint(l_cont);
+  return NULL;
 }
 
 

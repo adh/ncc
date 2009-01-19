@@ -16,6 +16,21 @@ int test_lvar(){
   }
   return 1;
 }
+int test_loop(){
+  int i = 7;
+  int j = 0;
+  while (i){
+    i = i - 1;
+    j = j + 1;
+  }
+  return j == 7;
+}
+int test_ternary(){
+  int to_cons = 13;
+  int to_alt = 37;
+  return (0?to_cons:to_alt) == 37;
+}
+
 int main(){
   init_gvar_test();
   if(!gvar_test()){
@@ -26,6 +41,12 @@ int main(){
   }
   if (!test_lvar()){
     return 3;
+  }
+  if (!test_loop()){
+    return 4;
+  }
+  if (!test_ternary()){
+    return 5;
   }
   return 0; /* success */
 }
