@@ -30,6 +30,9 @@ int test_ternary(){
   int to_alt = 37;
   return (0?to_cons:to_alt) == 37;
 }
+int test_short_circuit(){
+  
+}
 
 int main(){
   init_gvar_test();

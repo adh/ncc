@@ -258,9 +258,18 @@ llvm::Value* ShortCircuitOperation::generate(llvm::LLVMBuilder& builder,
 
   v_left = left->generate(builder, st);
   c = coerce_value(builder, v_left, left->get_type(st), TYPE_INTEGER);
-  c = builder.CreateICmpNE(c, 
-                           llvm::ConstantInt::get(llvm::APInt(32, 0, true)),
-                           "scl");
+  switch (op){
+  case SCOP_OR:
+    c = builder.CreateICmpEQ(c, 
+                             llvm::ConstantInt::get(llvm::APInt(32, 0, true)),
+                             "scl");
+    break;
+  case SCOP_AND:
+    c = builder.CreateICmpNE(c, 
+                             llvm::ConstantInt::get(llvm::APInt(32, 0, true)),
+                             "scl");    
+    break;
+  }
   builder.CreateCondBr(c, l_cont, l_right);
   
   builder.SetInsertPoint(l_right);
