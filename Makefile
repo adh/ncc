@@ -1,8 +1,8 @@
 SRCS = AST.cxx main.cxx token.cxx parse.cxx commandoptions.cxx
 CPPFLAGS   = `llvm-config --cppflags`
-CXXFLAGS   = -g -Wall $(CPPFLAGS) `llvm-config --cxxflags core`
-LDFLAGS    = `llvm-config --ldflags core` 
-LDADD      = `llvm-config --libs core`
+CXXFLAGS   = -g -Wall $(CPPFLAGS) `llvm-config --cxxflags core jit native`
+LDFLAGS    = `llvm-config --ldflags core jit native` 
+LDADD      = `llvm-config --libs core jit native`
 MAKEDEPEND = @echo "  DEP " $<; g++ -M $(CPPFLAGS) -o $(df).d $<
 LDC        = @echo "  LD  " $@; g++ $(LDFLAGS) 
 CCC        = @echo "  C++ " $@; g++ $(CXXFLAGS)

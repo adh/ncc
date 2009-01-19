@@ -269,6 +269,24 @@ void Tokenizer::next_token() {
     unread_char();
     token = '!';
     return;
+  case '<':
+    ch = read_char(true);
+    if (ch == '='){
+      token = TOKEN_LT_EQUAL;
+      return;
+    }
+    unread_char();
+    token = '<';
+    return;
+  case '>':
+    ch = read_char(true);
+    if (ch == '='){
+      token = TOKEN_GT_EQUAL;
+      return;
+    }
+    unread_char();
+    token = '>';
+    return;
   case '&':
     ch = read_char(true);
     if (ch == '&'){

@@ -308,18 +308,44 @@ ValueType Assignment::get_type(SymbolTable* st){
   return value->get_type(st);
 }
 
-
 UnaryOperation::~UnaryOperation(){
   delete expr;
 }
 void UnaryOperation::print(std::ostream& stream, int indent){
   print_indent(stream, indent);
-  stream << "UnaryOperation -" << std::endl;
+  switch (op){
+  case UNOP_INV:
+    stream << "UnaryOperation -" << std::endl;
+    break;
+  case UNOP_NOT:
+    stream << "UnaryOperation ~" << std::endl;
+    break;
+  case UNOP_LOG_NOT:
+    stream << "UnaryOperation !" << std::endl;
+    break;
+  }
   expr->print(stream, indent+2);
 }
 llvm::Value* UnaryOperation::generate(llvm::LLVMBuilder& builder, 
                                       SymbolTable* st){
-  throw new FeatureNotImplemented("unop code generation");
+  llvm::Value* v;
+
+  if (expr->get_type(st) != TYPE_INTEGER && op != UNOP_INV){
+    throw new IncompatibleTypes();
+  }
+  switch (op){
+  case UNOP_INV:
+    return builder.CreateNeg(expr->generate(builder, st));
+  case UNOP_NOT:
+    return builder.CreateNot(expr->generate(builder, st));
+  case UNOP_LOG_NOT:
+    v = expr->generate(builder, st);
+    v = builder.CreateICmpEQ(v, 
+                             llvm::ConstantInt::get(llvm::APInt(32, 0, true)),
+                             "lnt");
+    v = builder.CreateZExt(v, llvm_type(TYPE_INTEGER), "lnze");
+    break;
+  }
 }
 ValueType UnaryOperation::get_type(SymbolTable* st){
   return expr->get_type(st);
@@ -342,10 +368,23 @@ void FunCall::print(std::ostream& stream, int indent){
 }
 llvm::Value* FunCall::generate(llvm::LLVMBuilder& builder, 
                                SymbolTable* st){
-  throw new FeatureNotImplemented("funcall code generation");
+  Function& f = st->get_function(function);
+  std::vector<llvm::Value *> a;
+  int n = 0;
+  for (ExpressionVector::iterator i = arguments.begin();
+       i != arguments.end(); i++, n++){
+    if (n >= f.get_arg_count()){
+      throw new TooManyArguments(function);
+    }
+    llvm::Value* v = (*i)->generate(builder, st);
+    v = coerce_value(builder, v, (*i)->get_type(st), f.get_arg_type(n));
+    a.push_back(v);
+  }
+  
+  return builder.CreateCall(f.get_address(), a.begin(), a.end(), "funcall");
 }
 ValueType FunCall::get_type(SymbolTable* st){
-  return TYPE_INTEGER;
+  return st->get_function(function).get_ret_type();
 }
 
 
@@ -398,7 +437,8 @@ void StringLiteral::print(std::ostream& stream, int indent){
 }
 llvm::Value* StringLiteral::generate(llvm::LLVMBuilder& builder, 
                                      SymbolTable* st){
-  return NULL;
+  llvm::Module* m = builder.GetInsertBlock()->getParent()->getParent();
+  
 }
 ValueType StringLiteral::get_type(SymbolTable* st){
   return TYPE_POINTER;
@@ -445,7 +485,26 @@ void ConditionalStatement::print(std::ostream& stream, int indent){
 }
 llvm::Value* ConditionalStatement::generate(llvm::LLVMBuilder& builder, 
                                             SymbolTable* st){
-  throw new FeatureNotImplemented("cond code generation");
+  llvm::Function* f = builder.GetInsertBlock()->getParent();
+  llvm::BasicBlock* then = new llvm::BasicBlock("consequent", f);
+  llvm::BasicBlock* els = new llvm::BasicBlock("alternative", f);
+  llvm::BasicBlock* cont = new llvm::BasicBlock("continuation", f);
+  llvm::Value* c = cond->generate(builder, st);
+  c = coerce_value(builder, c, cond->get_type(st), TYPE_INTEGER);
+  c = builder.CreateICmpNE(c, 
+                           llvm::ConstantInt::get(llvm::APInt(32, 0, true)),
+                           "condition");
+  builder.CreateCondBr(c, then, els);
+  
+  builder.SetInsertPoint(then);
+  cons->generate(builder, st);
+  builder.CreateBr(cont);
+  builder.SetInsertPoint(els);
+  if (alt) {
+    alt->generate(builder, st);
+  }
+  builder.CreateBr(cont);
+  builder.SetInsertPoint(cont);
 }
 
 
@@ -456,7 +515,8 @@ llvm::Value* ReturnStatement::generate(llvm::LLVMBuilder& builder,
                                        SymbolTable* st){
   llvm::Value* ret = expr->generate(builder, st);
   ret = coerce_value(builder, ret, expr->get_type(st), st->get_lex_rtype());
-  builder.CreateRet(ret);
+  builder.CreateStore(ret, st->get_lex_retval());
+  builder.CreateBr(st->get_lex_epilog());
   return NULL;
 }
 void ReturnStatement::print(std::ostream& stream, int indent){
@@ -498,7 +558,14 @@ void LocalVariable::print(std::ostream& stream, int indent){
 }
 llvm::Value* LocalVariable::generate(llvm::LLVMBuilder& builder, 
                                      SymbolTable* st){
-  throw new FeatureNotImplemented("lvar");
+  llvm::Value* var = builder.CreateAlloca(llvm_type(type),0, name.c_str());
+  if (value){
+    llvm::Value* val = value->generate(builder, st);
+    val = coerce_value(builder, val, value->get_type(st), type);
+    builder.CreateStore(val, var);
+  }
+  st->put_symbol(name, Variable(var, type));
+  return NULL;
 }
 
 
@@ -552,9 +619,11 @@ void FunctionDeclaration::print(std::ostream& stream, int indent){
 void FunctionDeclaration::generate(llvm::Module* module,
                                    SymbolTable* st){
   std::vector<const llvm::Type*> arg_types;
+  std::vector<ValueType> arg_vtypes;
   for (ArgumentVector::iterator i = arguments.begin();
        i != arguments.end(); i++){
     arg_types.push_back(llvm_type((*i)->get_type()));
+    arg_vtypes.push_back((*i)->get_type());
   }
 
   llvm::FunctionType* t = llvm::FunctionType::get(llvm_type(type), 
@@ -571,6 +640,8 @@ void FunctionDeclaration::generate(llvm::Module* module,
        i != arguments.end(); i++, j++){
     j->setName((*i)->get_name());
   }
+
+  st->put_function(name, Function(type, arg_vtypes, f));
 }
 
 
@@ -589,9 +660,11 @@ void FunctionDefinition::print(std::ostream& stream, int indent){
 void FunctionDefinition::generate(llvm::Module* module,
                                   SymbolTable* st){
   std::vector<const llvm::Type*> arg_types;
+  std::vector<ValueType> arg_vtypes;
   for (ArgumentVector::iterator i = arguments.begin();
        i != arguments.end(); i++){
     arg_types.push_back(llvm_type((*i)->get_type()));
+    arg_vtypes.push_back((*i)->get_type());
   }
 
   llvm::FunctionType* t = llvm::FunctionType::get(llvm_type(type), 
@@ -602,9 +675,20 @@ void FunctionDefinition::generate(llvm::Module* module,
                        llvm::GlobalValue::ExternalLinkage,
                        name,
                        module);
-  SymbolTable fst(st, type);
+
+  st->put_function(name, Function(type, arg_vtypes, f));
+
   llvm::BasicBlock* entry = new llvm::BasicBlock("entry", f);
   llvm::LLVMBuilder builder(entry);
+
+  llvm::Value* rvp = builder.CreateAlloca(llvm_type(type), 0, "retval");
+
+  llvm::BasicBlock* epilog = new llvm::BasicBlock("epilog", f);
+  llvm::LLVMBuilder epbuilder(epilog);
+  llvm::Value* rv = epbuilder.CreateLoad(rvp);
+  epbuilder.CreateRet(rv);
+
+  SymbolTable fst(st, type, rvp, epilog);
 
   llvm::Function::arg_iterator j = f->arg_begin();
   for (ArgumentVector::iterator i = arguments.begin();
@@ -620,6 +704,5 @@ void FunctionDefinition::generate(llvm::Module* module,
 
 
   contents->generate(builder, &fst);
-
-  builder.CreateRet(llvm::UndefValue::get(llvm_type(type)));
+  builder.CreateBr(epilog);
 }

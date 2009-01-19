@@ -50,7 +50,7 @@ namespace ncc {
     void unread_char();
   public:
     Tokenizer(std::istream& stream): 
-      stream(stream), line(0), column(0) {};
+      stream(stream), line(1), column(0) {};
     char current_token(){
       return token;
     }
@@ -69,7 +69,7 @@ namespace ncc {
     void next_token();
     void eat_token(char expected){
       if (current_token() != expected){
-        //throw new ExpectedToken(expected, current_token());
+        throw new ExpectedToken(expected, current_token());
       }
       next_token();
     }

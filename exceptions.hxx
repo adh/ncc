@@ -70,6 +70,17 @@ namespace ncc {
       return "Incompatible types";
     }    
   };
+  class TooManyArguments : public std::exception {
+  private:
+    std::string message;
+  public:
+    TooManyArguments(const std::string& func) throw(): 
+      message("Too many arguments passed to " + func) {}
+    virtual ~TooManyArguments() throw() {};
+    virtual const char* what() const throw () {
+      return message.c_str();
+    }
+  };
 }
 
 #endif

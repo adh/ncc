@@ -22,6 +22,7 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
   ValueType a_type;
   Block* b;
   std::string a_name;
+  FunctionDeclaration* r;
 
   tok.next_token();
   if (tok.current_token() != ')'){
@@ -41,7 +42,9 @@ FunctionDeclaration* Parser::parse_function(ValueType return_type, const std::st
   tok.next_token();
   switch (tok.current_token()){
   case ';':
-    return new FunctionDeclaration(return_type, name, arguments);
+    r = new FunctionDeclaration(return_type, name, arguments);
+    tok.next_token();
+    return r;
   case '{':
     b = parse_block();
     return new FunctionDefinition(return_type, name, arguments, b);
@@ -180,6 +183,26 @@ Expression* Parser::parse_comparison(){
       tok.next_token();
       e = parse_additive();
       r = new BinaryOperation(r, e, BINOP_NEQ);
+      break;
+    case '>':
+      tok.next_token();
+      e = parse_additive();
+      r = new BinaryOperation(r, e, BINOP_GT);
+      break;
+    case '<':
+      tok.next_token();
+      e = parse_additive();
+      r = new BinaryOperation(r, e, BINOP_LT);
+      break;
+    case TOKEN_GT_EQUAL:
+      tok.next_token();
+      e = parse_additive();
+      r = new BinaryOperation(r, e, BINOP_GTE);
+      break;
+    case TOKEN_LT_EQUAL:
+      tok.next_token();
+      e = parse_additive();
+      r = new BinaryOperation(r, e, BINOP_LTE);
       break;
     default:
       return r;
@@ -369,6 +392,7 @@ Statement* Parser::parse_statement(){
 TopLevelForm* Parser::read_toplevel(){
   ValueType type;
   std::string ident;
+  TopLevelForm* r;
   if (tok.current_token() == TOKEN_EOF){
     return NULL;
   }
@@ -378,12 +402,17 @@ TopLevelForm* Parser::read_toplevel(){
   tok.next_token();
   switch (tok.current_token()){
   case ';':
-    return new GlobalVariable(type, ident, NULL);
+    r = new GlobalVariable(type, ident, NULL);
+    tok.next_token();
+    break;
   case '(':
-    return parse_function(type, ident);
+    r = parse_function(type, ident);
+    break;
   case '=':
-    return new GlobalVariable(type, ident, parse_initializer());
+    r = new GlobalVariable(type, ident, parse_initializer());
+    break;
   default:
     throw new UnexpectedToken(tok.current_token());
   }
+  return r;
 }
