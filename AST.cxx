@@ -248,7 +248,30 @@ void ShortCircuitOperation::print(std::ostream& stream, int indent){
 }
 llvm::Value* ShortCircuitOperation::generate(llvm::LLVMBuilder& builder,
                                              SymbolTable* st){
-  throw new FeatureNotImplemented("scop code generation");
+  llvm::Function* f = builder.GetInsertBlock()->getParent();
+  llvm::BasicBlock* l_orig = builder.GetInsertBlock();
+  llvm::Value* v_left;;
+  llvm::BasicBlock* l_right = new llvm::BasicBlock("right", f);
+  llvm::Value* v_right;;
+  llvm::BasicBlock* l_cont = new llvm::BasicBlock("cont", f);
+  llvm::Value* c;
+
+  v_left = left->generate(builder, st);
+  c = coerce_value(builder, v_left, left->get_type(st), TYPE_INTEGER);
+  c = builder.CreateICmpNE(c, 
+                           llvm::ConstantInt::get(llvm::APInt(32, 0, true)),
+                           "scl");
+  builder.CreateCondBr(c, l_cont, l_right);
+  
+  builder.SetInsertPoint(l_right);
+  v_right = right->generate(builder, st);
+  v_right = coerce_value(builder, v_right, right->get_type(st), TYPE_INTEGER);
+  builder.CreateBr(l_cont);
+  builder.SetInsertPoint(l_cont);
+  llvm::PHINode* p = builder.CreatePHI(llvm_type(get_type(st)));
+  p->addIncoming(v_left, l_orig);
+  p->addIncoming(v_right, l_right);
+  return p;  
 }
 ValueType ShortCircuitOperation::get_type(SymbolTable* st){
   return TYPE_INTEGER;
