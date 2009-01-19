@@ -317,14 +317,16 @@ llvm::Value* ConditionalExpression::generate(llvm::LLVMBuilder& builder,
   
   builder.SetInsertPoint(then);
   t_val = cons->generate(builder, st);
+  llvm::BasicBlock* l_cons_end = builder.GetInsertBlock();
   builder.CreateBr(cont);
   builder.SetInsertPoint(els);
   e_val = alt->generate(builder, st);
+  llvm::BasicBlock* l_alt_end = builder.GetInsertBlock();
   builder.CreateBr(cont);
   builder.SetInsertPoint(cont);
   llvm::PHINode* p = builder.CreatePHI(llvm_type(get_type(st)));
-  p->addIncoming(t_val, then);
-  p->addIncoming(e_val, els);
+  p->addIncoming(t_val, l_cons_end);
+  p->addIncoming(e_val, l_alt_end);
   return p;
 }
 ValueType ConditionalExpression::get_type(SymbolTable* st){
