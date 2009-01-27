@@ -14,7 +14,7 @@ int main(int argc, char**argv){
   std::string input_file;
   bool dump_ast = false;
   bool dump_ir = false;
-  bool run;
+  bool run = false;
   std::vector<std::string> args;
 
   co.register_flag(dump_ast, "dump-ast", 0, "Dump AST during parsing");

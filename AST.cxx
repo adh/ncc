@@ -407,6 +407,7 @@ llvm::Value* UnaryOperation::generate(llvm::LLVMBuilder& builder,
     v = builder.CreateZExt(v, llvm_type(TYPE_INTEGER), "lnze");
     return v;
   }
+  return NULL;
 }
 ValueType UnaryOperation::get_type(SymbolTable* st){
   return expr->get_type(st);
@@ -782,7 +783,6 @@ void FunctionDefinition::generate(llvm::Module* module,
     builder.CreateStore(j, ptr);
     fst.put_symbol((*i)->get_name(), Variable(ptr, (*i)->get_type()));
   }
-
 
   contents->generate(builder, &fst);
   builder.CreateBr(epilog);
