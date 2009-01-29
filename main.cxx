@@ -29,11 +29,18 @@ int main(int argc, char**argv){
   }
 
   std::ifstream is(input_file.c_str());
+  if (!is){
+    std::cerr << "Error opening input file" << std::endl;
+    return 1;
+  }
+
   ncc::TopLevelForm *f;
   ncc::SymbolTable global_symbols(new ncc::FunctionTable());
   llvm::Module module("");
   ncc::Tokenizer t(is);
   ncc::Parser p(t);
+
+
   while (1){
     try {
       f = p.read_toplevel();
