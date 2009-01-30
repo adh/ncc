@@ -30,13 +30,15 @@ static std::string type_name(ValueType type){
 }
 
 static const llvm::Type* llvm_type(ValueType type){
+  static llvm::Type* ptr = 
+    llvm::PointerType::getUnqual(llvm::OpaqueType::get());
   switch (type){
   case TYPE_INTEGER:
     return llvm::Type::Int32Ty;
   case TYPE_DOUBLE:
     return llvm::Type::DoubleTy;
   case TYPE_POINTER:
-    return llvm::PointerType::getUnqual(llvm::OpaqueType::get());
+    return ptr;
   default:
     abort();
   }
