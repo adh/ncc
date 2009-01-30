@@ -21,8 +21,9 @@ rozporuplné.
 \section{Pou¾ití}
 
 Program \texttt{ncc} naèítá kód ze souboru jeho¾ jméno je uvedeno
-na pøíkazové øádce. Po jeho naètení umí v yávislosti na pøedaných
-volbách provést tøi rùyné operace:
+na pøíkazové øádce. Po jeho naètení umí v závislosti na pøedaných
+volbách pøíkazové øádky provést tøi rùzné operace (èi jejich
+libovolnou kombinaci):
 
 \begin{itemize}
   \item Vypsat abstraktní szntaktzcký strom na chybový výstup v
@@ -55,7 +56,62 @@ C. Obsahuje:
   \item Ternární operátor
 \end{itemize}
 
-Vstupní soubor obsahuje posloupnost deklarací funkcí a promìných
+\begin{verbatim}
+type ::= 'int' | 'float' | 'ptr'
+\end{verbatim}
+
+Vstupní soubor obsahuje posloupnost deklarací funkcí a promìných a definicí 
+funkcí (v libovolném poøadí).
+
+\begin{verbatim}
+input-file ::= top-level*
+top-level ::= variable-declaration | function-declaration | function-definition
+variable-declaration ::= type identifier ';'
+function-declaration ::= function-prototype ';'
+function-definition ::= function-prototype block
+function-prototype ::= type identifier 
+                       '(' ( type identifier ( ',' type identifier)* )? ')'
+\end{verbatim}
+
+Blok je posloupností pøíkazù, pøièem¾ za pøíkaz je pova¾ována i
+definice lokální promìnné\footnote{Tedy to co ISO C99 nazývá
+  \textit{block-item}}.
+
+\begin{verbatim}
+block ::= '{' statement* '}'
+statement ::= local-variable | block | return-statement | 
+              if-statement | while-statement | comma-expression ';'
+\end{verbatim}
+
+Pøíkazy \texttt{if}, \texttt{while} a \texttt{return} odpovídají
+shodným konstrukcím jazyka C\footnote{s výjimkou faktu, ¾e definice
+  lokální promìnné je také platným pøíkazem, co¾ je ov¹em pro
+  programátora nezajímavé, pouze to ponìkud zjednodu¹uje definici
+  jazyka a implementaci parseru}.
+
+\begin{verbatim}
+if-statement ::= 'if' '(' comma-expression ')' statement 
+                 ('else' statement)?
+while-statement ::= 'while' '(' comma-expression ')' statement
+return-statement ::= 'return' comma-expression ';'
+\end{verbatim}
+
+Syntaxe výrazù odpovídá s vyjímkou vypu¹tìných operátorù syntaxi
+jazyka C a nepova¾uji za úèelné ji zde uvádìt kompletní. Podporované
+operátory jsou: \texttt{+}, \texttt{*}, \texttt{-}, \texttt{/},
+\texttt{\&}, \texttt{|}, \texttt{\^}, \texttt{==}, \texttt{!=},
+\texttt{<}, \texttt{>}, \texttt{<=}, \texttt{>=}, \texttt{,},
+\texttt{\&\&}, \texttt{||}, \texttt{=}, unární \texttt{-}, \texttt{\~},
+\texttt{!} a koneènì ternární operátor \texttt{?:}. Jediná podporovaná
+l-hodnota je promìnná, na levé stranì pøiøazovacího výrazu tedy smí
+stát pouze ta.
+
+Definice lokální promìnné umo¾òuje její inicializaci zadaným výrazem,
+na rozdíl od C nesmí tento výraz zaèínat pøiøazením.
+
+\begin{verbatim}
+local-variable ::= type IDENTIFIER ( '=' ternary-expression )?';'
+\end{verbatim}
 
 \section{Implementaèní poznámky}
 
