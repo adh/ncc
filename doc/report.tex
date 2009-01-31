@@ -37,7 +37,7 @@ libovolnou kombinaci):
 
 \section{Vstupní jazyk}
 Jak u¾ jsem zmínil, vstupem mého kompilátoru je podmno¾ina jazyka
-C. Obsahuje:
+C\cite{isoc}. Obsahuje:
 \begin{itemize}
   \item Èíselné typy \texttt{int} a \texttt{float}\footnote{Který je
     pøeveden na datový typ \texttt{double}, nicménì pova¾uji za
@@ -116,14 +116,46 @@ type ::= 'int' | 'float' | 'ptr'
 \end{verbatim}
 
 \section{Implementaèní poznámky}
+Program je psán pro verzi 2.2 knihovny LLVM. Aktuální verze (2.4)
+obsahuje celkem zásadní nekompatibility a tudí¾ není bez úprav
+pou¾itelná. Problém je, ¾e charakter tìchto nekompatibilit je takový,
+¾e zmínìných zmìn je obrovské mno¾ství a prakticky v¹echny jsou pouze formálního
+charakteru (pøejmenování tøíd, metod a podobnì). 
+
+Bìhem pøekladu je program nejprve pøeveden do abstraktního
+syntaktického stromu, který je poté rekurzivnì pøeveden na LLVM
+IR. Tento AST v sobì pro jednoduchost neuchovává informaci o èíslech
+øádek, chyby objevené a¾ v této fázi tudí¾ tuto informaci také
+nenesou.
+
+Pro tvorbu LLVM IR je pou¾ita tøída
+\texttt{LLVMBuilder}\footnote{Která je bohu¾el v aktuální verzi LLVM
+  pøejmenována na \texttt{IRBuilder}}. Tato tøída umo¾òuje vytváøet
+mezikód podobným zpùsobem jako by se vytváøel obyèejný assembler.
+
+Mechanizmus, kterým se pøedává informace o typu podvýrazu není zcela
+optimální, nicménì pro dané úèely dostaèuje. Lze pøedpokládat, ¾e
+rozumnìj¹í cesta by bylo vyu¾ít faktu, ¾e informaci o typu hodnoty si
+udr¾uje samotné LLVM a vyu¾ít tu a nikoli duplicitní
+mechanismus. Výhodou pou¾itého øe¹ení je, ¾e je na první pohled
+zøejmìj¹í.
+
+Parser umí naèítat nìkteré konstrukce (napøíklad inicializátory
+globalních promìnných nebo øetìzcové literály), pro které generátor
+kódu neumí vytvoøit odpovídající kód. Tento jev pova¾uji za vlastnost,
+proto¾e umo¾òuje v budoucnosti snadno generátor o danou funkènost
+roz¹íøit\footnote{Pravdìpodobnì pøi pøechodu na novìj¹í verzi LLVM}.
 
 \section{Závìr}
+
+
 
 \begin{thebibliography}{9}
   \bibitem{llvm} \textsl{The LLVM Compiler Infrastructure}
     \url{http://llvm.org/} 
   \bibitem{dfsch} Ale¹ Hakl \textsl{dfsch - Scheme-like dialect of
     LISP} \url{http://hakl.net/software/dfsch/}
+  \bibitem{isoc} \textsl{ISO/IEC 9899:TC2 Programming languages - C}
 \end{thebibliography}
 
 \end{document}
