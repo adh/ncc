@@ -13,7 +13,7 @@
 
 Rozhodl jsem se, ¾e jako semestrální práci naprogramuji kompilátor
 podmno¾iny jazyka C do vnitøní reprezentace pou¾ívané knihovnou
-LLVM. Mojí hlavní motivací bylo vyzkou¹et, jak se tato knihovna
+LLVM\cite{llvm}. Mojí hlavní motivací bylo vyzkou¹et, jak se tato knihovna
 vlastnì pou¾ívá, a jestli je jí mo¾né pou¾ít pro dynamycké generování
 kódu v mém projektu\cite{dfsch}. Závìry z tohoto pokusu jsou celkem
 rozporuplné.
@@ -46,8 +46,8 @@ C. Obsahuje:
   \item Neprùhledný typ \texttt{ptr} podobný typu \texttt{void *} z C,
     se kterým nelze provádìt ¾ádné jiné operace ne¾ pøedání funkci
     jako parametr.
-  \item Øídící struktury \texttt{if}, \texttt{while} a logické
-    operátory se zkráceným vyhodnocováním.
+  \item Øídící struktury \texttt{if}, \texttt{while}
+  \item Logické operátory se zkráceným vyhodnocováním.
   \item Globální a lokální promìnné.
   \item Deklarace funkcí.
   \item Prakticky v¹echny aritmetické operátory ze standardního C s
@@ -55,10 +55,6 @@ C. Obsahuje:
   \item Relaèní operátory
   \item Ternární operátor
 \end{itemize}
-
-\begin{verbatim}
-type ::= 'int' | 'float' | 'ptr'
-\end{verbatim}
 
 Vstupní soubor obsahuje posloupnost deklarací funkcí a promìných a definicí 
 funkcí (v libovolném poøadí).
@@ -113,13 +109,21 @@ na rozdíl od C nesmí tento výraz zaèínat pøiøazením.
 local-variable ::= type IDENTIFIER ( '=' ternary-expression )?';'
 \end{verbatim}
 
+Jsou podporovány pouze tøi vý¹e zmínìné skalární typy:
+
+\begin{verbatim}
+type ::= 'int' | 'float' | 'ptr'
+\end{verbatim}
+
 \section{Implementaèní poznámky}
 
 \section{Závìr}
 
 \begin{thebibliography}{9}
+  \bibitem{llvm} \textsl{The LLVM Compiler Infrastructure}
+    \url{http://llvm.org/} 
   \bibitem{dfsch} Ale¹ Hakl \textsl{dfsch - Scheme-like dialect of
-    LISP}. \url{http://hakl.net/software/dfsch/} 
+    LISP} \url{http://hakl.net/software/dfsch/}
 \end{thebibliography}
 
 \end{document}
