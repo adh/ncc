@@ -14,19 +14,19 @@
 Rozhodl jsem se, ¾e jako semestrální práci naprogramuji kompilátor
 podmno¾iny jazyka C do vnitøní reprezentace pou¾ívané knihovnou
 LLVM\cite{llvm}. Mojí hlavní motivací bylo vyzkou¹et, jak se tato knihovna
-vlastnì pou¾ívá, a jestli je jí mo¾né pou¾ít pro dynamycké generování
+vlastnì pou¾ívá, a je-li ji mo¾né pou¾ít pro dynamické generování
 kódu v mém projektu\cite{dfsch}. Závìry z tohoto pokusu jsou celkem
 rozporuplné.
 
 \section{Pou¾ití}
 
-Program \texttt{ncc} naèítá kód ze souboru jeho¾ jméno je uvedeno
+Program \texttt{ncc} naèítá kód ze souboru, jeho¾ jméno je uvedeno
 na pøíkazové øádce. Po jeho naètení umí v závislosti na pøedaných
 volbách pøíkazové øádky provést tøi rùzné operace (èi jejich
 libovolnou kombinaci):
 
 \begin{itemize}
-  \item Vypsat abstraktní szntaktzcký strom na chybový výstup v
+  \item Vypsat abstraktní syntaktický strom na chybový výstup v
     pøípadì pou¾ití volby \texttt{--dump-ast}
   \item Vypsat textovou formu vnitøní reprezentace programu na chybový
     výstup (\texttt{--dump-ir})
@@ -39,24 +39,24 @@ libovolnou kombinaci):
 Jak u¾ jsem zmínil, vstupem mého kompilátoru je podmno¾ina jazyka
 C\cite{isoc}. Obsahuje:
 \begin{itemize}
-  \item Èíselné typy \texttt{int} a \texttt{float}\footnote{Který je
+  \item Èíselné typy \texttt{int} a \texttt{float}\footnote{který je
     pøeveden na datový typ \texttt{double}, nicménì pova¾uji za
     matoucí, aby se jediný podporovaný FP typ jmenoval
-    \texttt{double}.}.
+    \texttt{double}}
   \item Neprùhledný typ \texttt{ptr} podobný typu \texttt{void *} z C,
     se kterým nelze provádìt ¾ádné jiné operace ne¾ pøedání funkci
-    jako parametr.
+    jako parametr
   \item Øídící struktury \texttt{if}, \texttt{while}
-  \item Logické operátory se zkráceným vyhodnocováním.
-  \item Globální a lokální promìnné.
-  \item Deklarace funkcí.
+  \item Logické operátory se zkráceným vyhodnocováním
+  \item Globální a lokální promìnné
+  \item Deklarace funkcí
   \item Prakticky v¹echny aritmetické operátory ze standardního C s
-    vyjímkou pøiøazovacích.
+    výjimkou pøiøazovacích
   \item Relaèní operátory
   \item Ternární operátor
 \end{itemize}
 
-Vstupní soubor obsahuje posloupnost deklarací funkcí a promìných a definicí 
+Vstupní soubor obsahuje posloupnost deklarací funkcí a promìnných a definicí 
 funkcí (v libovolném poøadí).
 
 \begin{verbatim}
@@ -70,7 +70,7 @@ function-prototype ::= type identifier
 \end{verbatim}
 
 Blok je posloupností pøíkazù, pøièem¾ za pøíkaz je pova¾ována i
-definice lokální promìnné\footnote{Tedy to co ISO C99 nazývá
+definice lokální promìnné\footnote{tedy to co ISO C99 nazývá
   \textit{block-item}}.
 
 \begin{verbatim}
@@ -92,7 +92,7 @@ while-statement ::= 'while' '(' comma-expression ')' statement
 return-statement ::= 'return' comma-expression ';'
 \end{verbatim}
 
-Syntaxe výrazù odpovídá s vyjímkou vypu¹tìných operátorù syntaxi
+Syntaxe výrazù odpovídá s výjimkou vypu¹tìných operátorù syntaxi
 jazyka C a nepova¾uji za úèelné ji zde uvádìt kompletní. Podporované
 operátory jsou: \texttt{+}, \texttt{*}, \texttt{-}, \texttt{/},
 \texttt{\&}, \texttt{|}, \texttt{\^}, \texttt{==}, \texttt{!=},
@@ -133,22 +133,30 @@ Pro tvorbu LLVM IR je pou¾ita tøída
   pøejmenována na \texttt{IRBuilder}}. Tato tøída umo¾òuje vytváøet
 mezikód podobným zpùsobem jako by se vytváøel obyèejný assembler.
 
-Mechanizmus, kterým se pøedává informace o typu podvýrazu není zcela
+Mechanizmus, kterým se pøedává informace o typu podvýrazu, není zcela
 optimální, nicménì pro dané úèely dostaèuje. Lze pøedpokládat, ¾e
-rozumnìj¹í cesta by bylo vyu¾ít faktu, ¾e informaci o typu hodnoty si
+rozumnìj¹í cestou by bylo vyu¾ít faktu, ¾e informaci o typu hodnoty si
 udr¾uje samotné LLVM a vyu¾ít tu a nikoli duplicitní
 mechanismus. Výhodou pou¾itého øe¹ení je, ¾e je na první pohled
 zøejmìj¹í.
 
 Parser umí naèítat nìkteré konstrukce (napøíklad inicializátory
-globalních promìnných nebo øetìzcové literály), pro které generátor
+globálních promìnných nebo øetìzcové literály), pro které generátor
 kódu neumí vytvoøit odpovídající kód. Tento jev pova¾uji za vlastnost,
 proto¾e umo¾òuje v budoucnosti snadno generátor o danou funkènost
 roz¹íøit\footnote{Pravdìpodobnì pøi pøechodu na novìj¹í verzi LLVM}.
 
 \section{Závìr}
 
+I pøes nìkteré nedodìlky pracuje kompilátor vcelku dobøe. Ohlednì
+uspoøádání zdrojového kódu je ponìkud nevhodné kombinovat abstraktní
+syntaktický strom s generátorem kódu, ov¹em v C++ by bylo neúmìrnì
+slo¾ité tyto èásti oddìlovat, zvlá¹» vzhledem k úèelu programu. 
 
+Bohu¾el mì implementace tohoto jednoduchého kompilátoru pøesvìdèila,
+¾e knihovna LLVM není pro moje úèely uplnì vhodná. To je z èásti i
+dùvod, proè jsem nakonec nìkteré vlastnosti, které jsem pùvodnì
+zamý¹lel, nedotáhl úplnì do konce.
 
 \begin{thebibliography}{9}
   \bibitem{llvm} \textsl{The LLVM Compiler Infrastructure}

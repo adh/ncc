@@ -501,7 +501,6 @@ void StringLiteral::print(std::ostream& stream, int indent){
 }
 llvm::Value* StringLiteral::generate(llvm::LLVMBuilder& builder, 
                                      SymbolTable* st){
-  //  llvm::Module* m = builder.GetInsertBlock()->getParent()->getParent();
   throw new FeatureNotImplemented("string literals");
 }
 ValueType StringLiteral::get_type(SymbolTable* st){
