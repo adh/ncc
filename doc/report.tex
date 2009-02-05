@@ -146,6 +146,11 @@ kódu neumí vytvoøit odpovídající kód. Tento jev pova¾uji za vlastnost,
 proto¾e umo¾òuje v budoucnosti snadno generátor o danou funkènost
 roz¹íøit\footnote{Pravdìpodobnì pøi pøechodu na novìj¹í verzi LLVM}.
 
+K zpracování voleb pøíkazové øádky je pou¾ita tøída
+\texttt{CommandOptions} od Ole Laursena\cite{cmdopts}. Verze pøilo¾ená
+ke zdrojovému kódu obsahuje nìkolik mých roz¹íøení, ty ov¹em tento
+program nepou¾ívá.
+
 \section{Závìr}
 
 I pøes nìkteré nedodìlky pracuje kompilátor vcelku dobøe. Ohlednì
@@ -164,6 +169,8 @@ zamý¹lel, nedotáhl úplnì do konce.
   \bibitem{dfsch} Ale¹ Hakl \textsl{dfsch - Scheme-like dialect of
     LISP} \url{http://hakl.net/software/dfsch/}
   \bibitem{isoc} \textsl{ISO/IEC 9899:TC2 Programming languages - C}
+  \bibitem{cmdopts} Ole Laursen \textsl{Command-line library} 
+    \url{http://people.iola.dk/olau/commandoptions/}
 \end{thebibliography}
 
 \end{document}

@@ -1,3 +1,8 @@
+/* -*- mode: C -*-
+ * Test program for most of ncc features.
+ * Should compile and return 0 when run.
+ */
+
 int foo;
 int init_gvar_test(){
   foo = 1337;

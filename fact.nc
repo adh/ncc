@@ -1,3 +1,7 @@
+/* -*- mode: C -*-
+ * Naive factorial calculation.
+ */
+
 int fact(int n){
   if (n < 2){
     return 1;
@@ -7,5 +11,5 @@ int fact(int n){
 }
 
 int main(){
-  return fact(6);
+  return fact();
 }

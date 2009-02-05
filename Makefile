@@ -1,4 +1,8 @@
 SRCS = AST.cxx main.cxx token.cxx parse.cxx commandoptions.cxx
+DIST = Makefile AST.hxx commandoptions.hxx exceptions.hxx \
+	parse.hxx symbol.hxx token.hxx types.hxx
+PKGNAME = ncc
+VERSION = 0.1
 CPPFLAGS   = `llvm-config --cppflags`
 CXXFLAGS   = -g -Wall $(CPPFLAGS) `llvm-config --cxxflags core jit native`
 LDFLAGS    = `llvm-config --ldflags core jit native` 
@@ -31,3 +35,10 @@ df = $(DEPDIR)/$(*F)
 	$(CCC) -o $@ -c $<
 
 -include $(SRCS:%.cxx=$(DEPDIR)/%.P)
+
+dist:
+	rm -rf $(PKGNAME)-$(VERSION)
+	mkdir $(PKGNAME)-$(VERSION)
+	cp $(SRCS) $(PKGNAME)-$(VERSION)
+	cp $(DIST) $(PKGNAME)-$(VERSION)
+	tar cvzf $(PKGNAME)-$(VERSION).tar.gz $(PKGNAME)-$(VERSION)
